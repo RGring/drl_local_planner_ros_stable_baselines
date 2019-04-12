@@ -15,7 +15,7 @@
         * Clone this repository in your src-folder of your catkin workspace
         * cd ~/catkin_ws/src/drl_local_planner_ros_stable_baselines
         * cp .rosinstall ../
-        * cd ~/catkin_ws/src
+        * cd ..
         * rosws update
         * cd ~/catkin_ws
         * catkin_make (please install required ros packages)
@@ -44,7 +44,7 @@
         * Make sure the sourcing in rl_agent/start_scripts/ppo2_training.sh is correct
 
 
-# Sample usage
+# Example usage
 
 Copy the example_agents in your "path_to_checkpoint"
 
