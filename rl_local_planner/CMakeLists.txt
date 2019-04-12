@@ -62,7 +62,7 @@ include_directories(
 add_definitions(${EIGEN3_DEFINITIONS})
 
 add_library(rlLocalPlanner 	
-  src/local_planner_dummy.cpp
+  src/rl_local_planner.cpp
 )
 
 add_dependencies(rlLocalPlanner
@@ -74,6 +74,33 @@ target_link_libraries(rlLocalPlanner
    ${catkin_LIBRARIES}
    ${boost_LIBRARIES}
 )
+
+add_executable(wp_generator
+  src/wp_generator.cpp
+)
+
+add_dependencies(wp_generator
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(wp_generator
+  ${catkin_LIBRARIES}
+)
+
+add_executable(image_generator
+  src/image_generator.cpp
+)
+
+add_dependencies(image_generator
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(image_generator
+  ${catkin_LIBRARIES}
+)
+
 
 
 #############
@@ -95,4 +122,11 @@ install(
 
 install(DIRECTORY include/${PROJECT_NAME}/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(
+  TARGETS
+    wp_generator
+    image_generator
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

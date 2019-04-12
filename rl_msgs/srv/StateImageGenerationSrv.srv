@@ -1,0 +1,5 @@
+sensor_msgs/LaserScan scan
+rl_msgs/Waypoint wps
+
+---
+nav_msgs/OccupancyGrid img

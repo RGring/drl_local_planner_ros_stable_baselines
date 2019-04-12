@@ -1,0 +1,3 @@
+sensor_msgs/LaserScan[] scans
+---
+sensor_msgs/LaserScan merged_scan

@@ -1,0 +1,16 @@
+- git:
+    local-name: rl_local_planner/flatland
+    uri: https://github.com/RGring/flatland.git
+    version: pedsim_integration
+- git:
+    local-name: rl_local_planner/pedsim
+    uri: https://github.com/RGring/pedsim_ros.git
+    version: rl_features
+- git:
+    local-name: rl_local_planner/navigation
+    uri: https://github.com/RGring/navigation.git
+    version: flatland_integration
+- git:
+    local-name: rl_local_planner/rl_stuff
+    uri: https://github.com/RGring/rl_local_planner.git
+    version: master

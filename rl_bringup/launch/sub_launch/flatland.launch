@@ -1,0 +1,47 @@
+<launch>
+	<arg name="ns"/> 
+  <arg name="map_path"/> 
+  <arg name="update_rate"/>
+
+
+  <!--  ******************** flatland parameters ********************  -->
+  <arg name="world_path"   default="$(arg map_path)/world.yaml"/>
+
+  <!-- <arg name="initial_pose_x" default="10.0"/> -->
+  <arg name="initial_pose_x" default="7.0"/>
+  <arg name="initial_pose_y" default="8.0"/>
+  <arg name="initial_pose_a" default="0.5"/>
+
+  <arg name="step_size" default="0.01"/>
+  <arg name="viz_pub_rate" default="30.0"/>
+  <arg name="show_viz" default="true"/>  
+  <arg name="use_rviz" default="true"/>  
+  <env name="ROSCONSOLE_FORMAT" value="[${severity} ${time} ${logger}]: ${message}" />
+
+  <!-- ******************* launch flatland server ****************** -->
+  <env name="GMON_OUT_PREFIX" value="flatland_server" />
+  <node name="flatland_server" pkg="flatland_server" type="flatland_server" output="screen">  
+    <param name="world_path" value="$(arg world_path)" />
+    <param name="update_rate" value="$(arg update_rate)" />
+    <param name="step_size" value="$(arg step_size)" />
+    <param name="show_viz" value="$(arg show_viz)" />
+    <param name="viz_pub_rate" value="$(arg viz_pub_rate)" />
+    <param name="initial_pose_x" value="$(arg initial_pose_x)" />
+    <param name="initial_pose_y" value="$(arg initial_pose_y)" />
+    <param name="initial_pose_a" value="$(arg initial_pose_a)" />
+    <remap from="/tf" to="/$(arg ns)/tf"/>
+    <remap from="/clock" to="/$(arg ns)/clock"/>
+  </node>
+
+  <!--  ***************** Spawn Robot Model *****************  -->
+  <node name="spawn_robot" pkg="rosservice" type="rosservice"
+    args="call --wait spawn_model &quot;{
+      yaml_path: '$(find flatland_setup)/robot/robot1.model.yaml',
+      name: 'robot_1',
+      ns: '',
+      pose: {x: $(arg initial_pose_x), y: $(arg initial_pose_y), theta: $(arg initial_pose_a)}}&quot;"
+    >
+    <remap from="/tf" to="/$(arg ns)/tf"/>
+    <remap from="/clock" to="/$(arg ns)/clock"/>
+  </node>
+</launch>
