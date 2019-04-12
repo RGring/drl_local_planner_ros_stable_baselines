@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="ns"/> 
+	<arg name="map_path"/> 
+
+	<!-- Load map -->
+    <node pkg="map_server" type="map_server" name="map_server" output="screen" args="$(arg map_path)/map.yaml">
+		<!-- <remap from="/map" to="/$(arg ns)/map"/> -->
+		<remap from="/tf" to="/$(arg ns)/tf"/>
+		<remap from="/clock" to="/$(arg ns)/clock"/>
+    </node>
+
+	<!-- Launch localization (dummy) -->
+	<include file="$(find rl_bringup)/launch/sub_launch/dummy_localization.launch">
+		<arg name="ns" value="$(arg ns)"/>
+	</include>
+    	
+	<!-- Launch move_base node -->
+	<include file="$(find rl_bringup)/launch/sub_launch/move_base.launch">
+		<arg name="ns" value="$(arg ns)"/>
+	</include>
+</launch>

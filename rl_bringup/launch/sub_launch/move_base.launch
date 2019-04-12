@@ -1,0 +1,14 @@
+<launch>
+	<arg name="ns"/>
+
+   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find rl_bringup)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find rl_bringup)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find rl_bringup)/config/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find rl_bringup)/config/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find rl_bringup)/config/movebase_params.yaml" command="load" /> 
+    <remap from="/tf" to="/$(arg ns)/tf"/>
+    <remap from="/clock" to="/$(arg ns)/clock"/>
+ </node>
+
+</launch>

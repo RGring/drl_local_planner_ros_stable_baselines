@@ -1,13 +1,7 @@
 <library path="lib/librlLocalPlanner">
   <class name="rl_local_planner/RLLocalPlanner" type="rl_local_planner::RLLocalPlanner" base_class_type="nav_core::BaseLocalPlanner">
     <description>
-      An implementation of the local planner used by rl agent following manner.
-    </description>
-  </class>
-
-  <class name="rl_local_planner/LocalPlannerDummy" type="rl_local_planner::LocalPlannerDummy" base_class_type="nav_core::BaseLocalPlanner">
-    <description>
-      An implementation of a dummy local planner.
+      An implementation of a local planner communicating with an rl-agent.
     </description>
   </class>
 </library>

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<launch>
+    <param name="use_sim_time" value="true"/>
+    <arg name="ns" default=""/>
+    <arg name="rl_params" default="rl_params_img"/>
+    <!-- <arg name="rl_params" default="rl_params_scan"/> -->
+
+    <!-- <arg name="update_rate" default="10000"/> -->
+    <arg name="update_rate" default="300"/>
+    
+	<arg name="map_path" default="$(find flatland_setup)/maps/map_middle_complexity"/>
+
+    <group ns="$(arg ns)" if="$(eval ns != '')">
+
+        <rosparam file="$(find rl_bringup)/config/$(arg rl_params).yaml" command="load" />
+        
+        <!-- Start navigation stack-->
+        <include file="$(find rl_bringup)/launch/sub_launch/navigation.launch">
+            <arg name="ns" value="$(arg ns)" />
+            <arg name="map_path" value="$(arg map_path)" />
+        </include>
+
+        <!-- Start simulation -->
+        <include file="$(find rl_bringup)/launch/sub_launch/simulation.launch">
+            <arg name="ns" value="$(arg ns)" />
+            <arg name="map_path" value="$(arg map_path)" />
+            <arg name="update_rate" value="$(arg update_rate)" />
+        </include>
+
+        <!-- RL infrastructure-->
+        <node pkg="rl_agent" type="laser_scan_merger" name="laser_scan_merger" output="screen">
+            <remap from="/tf" to="/$(arg ns)/tf"/>
+            <remap from="/clock" to="/$(arg ns)/clock"/>
+        </node>	
+
+        <node pkg="rl_local_planner" type="image_generator" name="image_generator" output="screen">
+            <remap from="/tf" to="/$(arg ns)/tf"/>
+            <remap from="/clock" to="/$(arg ns)/clock"/>
+        </node>	
+
+        <node pkg="rl_local_planner" type="wp_generator" name="wp_generator" output="screen">
+            <remap from="/tf" to="/$(arg ns)/tf"/>
+            <remap from="/clock" to="/$(arg ns)/clock"/>
+        </node>	
+
+        <node pkg="rl_agent" type="tf_python" name="tf_python" output="screen">
+            <remap from="/tf" to="/$(arg ns)/tf"/>
+            <remap from="/clock" to="/$(arg ns)/clock"/>
+        </node>	
+
+        <node pkg="rl_bringup" type="toggle_setup_init" name="toggle_setup_init" output="screen">
+            <remap from="/tf" to="/$(arg ns)/tf"/>
+            <remap from="/clock" to="/$(arg ns)/clock"/>
+        </node>
+    </group>
+
+</launch>

@@ -1,0 +1,5 @@
+
+base_local_planner: rl_local_planner/RLLocalPlanner
+base_global_planner: navfn/NavfnROS
+update_frequency: 10.0
+
