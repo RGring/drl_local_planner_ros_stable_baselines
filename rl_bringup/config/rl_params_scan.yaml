@@ -1,5 +1,4 @@
 rl_agent:
-  agent_params: ppo_128_10000666
   state_mode: 1 # 0: image, 1: laserscan
   train_mode: 1 # 0: Execution in Simulation, 1: Training, 2: Execution in Real World
   f_scan_topic: f_scan

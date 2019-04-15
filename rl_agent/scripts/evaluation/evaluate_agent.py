@@ -37,16 +37,15 @@ if __name__ == '__main__':
     #### Training/Testin setup properties ####
     #### Please adjust.                   ####
     ##########################################
-    task_type = "static"            # static, ped
+    task_type = "ped"            # static, ped
     complexity = "average"          # simple, average, complex
-    no_episodes = 300
+    no_episodes = 4
     ns = "sim1"
     approach = "PPO1"               # PPO1, PPO2
     policy = "CnnPolicy"            # CnnPolicy, CNN1DPolicy, CNN1DPolicy_multi_input, CnnPolicy_multi_input_vel
     disc_action_space = True
     # agent_names = ["ppo_195_10008246", "ppo_196_10002196", "ppo_197_10003358"]
     agent_names = ["ppo2_47_9500400", "ppo2_48_9000600", "ppo2_46_10000200"]
-
 
     evaluation_set_name = "%s_eval_set_%s_%d"%(task_type, complexity, no_episodes)
     evaluation_set_path = "%s/%s"%(path_to_eval_sets, evaluation_set_name)
@@ -65,6 +64,6 @@ if __name__ == '__main__':
         p_eval.start()
         p_eval.join()
 
-        p.terminate()
+        # p.terminate()
 
 
