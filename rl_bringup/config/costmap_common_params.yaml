@@ -2,6 +2,8 @@ obstacle_range: 3.0
 raytrace_range: 6.0
 robot_radius: 0.46
 inflation_radius: 0.6
-back_scan: {clearing: true, data_type: LaserScan, expected_update_rate: 0.0, marking: true, max_obstacle_height: 0.25, min_obstacle_height: 0.0, sensor_frame: back_laser_link, topic: b_scan}
-front_scan: {clearing: true, data_type: LaserScan, expected_update_rate: 0.0, marking: true, max_obstacle_height: 0.25, min_obstacle_height: 0.0, sensor_frame: front_laser_link, topic: f_scan}
+back_scan: {clearing: true, data_type: LaserScan, expected_update_rate: 0.0, marking: true, max_obstacle_height: 0.25, min_obstacle_height: -0.1, sensor_frame: back_laser_link, topic: b_scan}
+front_scan: {clearing: true, data_type: LaserScan, expected_update_rate: 0.0, marking: true, max_obstacle_height: 0.25, min_obstacle_height: -0.1, sensor_frame: front_laser_link, topic: f_scan}
 observation_sources: front_scan back_scan
+
+

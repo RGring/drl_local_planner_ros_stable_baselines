@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
 # for quick testing
     else:
-        mode = "exec"
+        mode = "train"
         ns = "sim1"
         policy = "CnnPolicy_multi_input_vel2"
         approach = "PPO2"                       # Either PPO1 or PPO2

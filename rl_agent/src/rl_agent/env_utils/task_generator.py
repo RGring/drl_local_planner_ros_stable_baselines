@@ -53,7 +53,7 @@ class TaskGenerator():
                                  "y": [],
                                  "theta": []}           # static objects that has been spawned
 
-        self.__ped_type = 11                            # 0: Pedestrians don't avoid robot
+        self.__ped_type = 10                            # 0: Pedestrians don't avoid robot
                                                         # 10: Pedestrians always avoid robot
                                                         # 11: Pedestrians avoid robot if it stands still and after reaction time.
 
@@ -470,7 +470,7 @@ class TaskGenerator():
         self.__peds = []
         return
 
-    def __spawn_random_peds_in_world(self, n):
+    def spawn_random_peds_in_world(self, n):
         """
         Spawning n random pedestrians in the whole world.
         :param n number of pedestrians that will be spawned.
@@ -479,12 +479,13 @@ class TaskGenerator():
             waypoints = np.array([], dtype=np.int64).reshape(0, 3)
             [x, y, theta] = self.__get_random_pos_on_map(self.__map)
             waypoints = np.vstack([waypoints, [x, y, 0.3]])
-            if random.uniform(0.0, 1.0) < 0.75:
-                dist = 0
-                while dist < 6:
-                    [x2, y2, theta2] = self.__get_random_pos_on_map(self.__map)
-                    dist = self.__mean_sqare_dist_((x - x2), (y - y2))
-                waypoints = np.vstack([waypoints, [x2, y2, 0.3]])
+            if random.uniform(0.0, 1.0) < 0.8:
+                for j in range(4):
+                    dist = 0
+                    while dist < 4:
+                        [x2, y2, theta2] = self.__get_random_pos_on_map(self.__map)
+                        dist = self.__mean_sqare_dist_((waypoints[-1,0] - x2), (waypoints[-1,1] - y2))
+                    waypoints = np.vstack([waypoints, [x2, y2, 0.3]])
             self.__spawn_ped([x, y, 0.0], waypoints, i)
 
     def __spawn_random_peds_on_path(self):

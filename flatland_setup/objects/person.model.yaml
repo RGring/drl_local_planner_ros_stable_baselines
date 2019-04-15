@@ -19,7 +19,7 @@ bodies:  # List of named bodies
     footprints:
       - type: circle
         radius: 0.1
-        center: [0.0, 0]
+        center: [0.15, 0]
         density: 1
         layers: ["2d", "ped"]
         collision: false
@@ -31,7 +31,7 @@ bodies:  # List of named bodies
     footprints:
       - type: circle
         radius: 0.1
-        center: [-0.0, 0]
+        center: [-0.15, 0]
         density: 1
         layers: ["2d", "ped"]
         collision: false
@@ -63,13 +63,13 @@ plugins:
     left_leg_body: left_leg
     right_leg_body: right_leg
     update_rate: 40
-    toggle_leg_movement: false #true
-    leg_offset: 0.0 #0.3
-    var_leg_offset: 0.0 #0.05
-    step_time: 0.4 #(in sec)
+    toggle_leg_movement: true #true
+    leg_offset: 0.3 #0.3
+    var_leg_offset: 0.05 #0.05
+    step_time: 0.3 #(in sec)
     var_step_time: 0.08
-    leg_radius: 0.2 #0.1
-    var_leg_radius: 0.03 #0.02
+    leg_radius: 0.1 #0.2 #0.1
+    var_leg_radius: 0.02 #0.03 #0.02
 
   # - type: ModelTfPublisher
   #   name: tf_publisher_
