@@ -6,6 +6,7 @@
 # Required Software
 
     * sudo apt install screen
+    * sudo apt install virtualenv
     * standart ROS setup (Code has been tested with ROS-kinetic on Ubuntu 16.04)
 
 
