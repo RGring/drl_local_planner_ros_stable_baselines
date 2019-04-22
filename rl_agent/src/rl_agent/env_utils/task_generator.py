@@ -53,7 +53,7 @@ class TaskGenerator():
                                  "y": [],
                                  "theta": []}           # static objects that has been spawned
 
-        self.__ped_type = 10                            # 0: Pedestrians don't avoid robot
+        self.__ped_type = 11                            # 0: Pedestrians don't avoid robot
                                                         # 10: Pedestrians always avoid robot
                                                         # 11: Pedestrians avoid robot if it stands still and after reaction time.
 

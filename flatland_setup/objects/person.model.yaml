@@ -9,7 +9,7 @@ bodies:  # List of named bodies
         radius: 0.001
         center: [0, 0]
         density: 0
-        layers: ["3d"]
+        layers: []
         collision: false
 
   - name: left_leg
@@ -36,25 +36,6 @@ bodies:  # List of named bodies
         layers: ["2d", "ped"]
         collision: false
 
-
-# joints:
-#   - type: weld
-#     name: left_leg_weld
-#     bodies: 
-#       - name: base
-#         anchor: [0, 1]
-#       - name: left_leg
-#         anchor: [0, 0]
-
-#   - type: weld
-#     name: right_leg_weld
-#     bodies: 
-#       - name: base
-#         anchor: [0, -1]
-#       - name: right_leg
-#         anchor: [0, 0]
-
-
 plugins:
   - type: PedsimMovement
     name: pedsim_movement
@@ -62,7 +43,7 @@ plugins:
     base_body: base
     left_leg_body: left_leg
     right_leg_body: right_leg
-    update_rate: 40
+    update_rate: 10
     toggle_leg_movement: true #true
     leg_offset: 0.3 #0.3
     var_leg_offset: 0.05 #0.05

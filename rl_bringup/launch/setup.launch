@@ -5,8 +5,8 @@
     <arg name="rl_params" default="rl_params_img_dyn"/>
     <!-- <arg name="rl_params" default="rl_params_scan"/> -->
 
-    <!-- <arg name="update_rate" default="10000"/> -->
-    <arg name="update_rate" default="300"/>
+    <arg name="update_rate" default="10000"/>
+    <!-- <arg name="update_rate" default="300"/> -->
     
 	<arg name="map_path" default="$(find flatland_setup)/maps/map_middle_complexity"/>
 
