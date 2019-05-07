@@ -19,7 +19,7 @@
         * cd ..
         * rosws update
         * cd ~/catkin_ws
-        * catkin_make (please install required ros packages)
+        * catkin_make -DCMAKE_BUILD_TYPE=Release (please install required ros packages)
 
     2. Setup virtual environment to be able to use python3 with ros
         * virtualenv <path_to_venv>/venv_p3 --python=python3
