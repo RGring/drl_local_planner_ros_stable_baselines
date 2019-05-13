@@ -40,14 +40,14 @@ class RosEnvDiscImg(RosEnvImg):
         observation_space = spaces.Box(low=0, high=100, shape=state_size, dtype=np.float)
 
         self.action = np.array([0.0, 0.0])
-        v_max = 0.5
-        w_max = 0.5
+        self.v_max_ = 0.5
+        self.w_max_ = 0.5
         self.__possible_actions = {
-            0: [0.0, -w_max],
-            1: [v_max, 0.0],
-            2: [0.0, w_max],
-            3: [v_max, w_max/2],
-            4: [v_max, -w_max/2],
+            0: [0.0, -self.w_max_],
+            1: [self.v_max_, 0.0],
+            2: [0.0, self.w_max_],
+            3: [self.v_max_, self.w_max_/2],
+            4: [self.v_max_, -self.w_max_/2],
             5: [0.0, 0.0],
         }
         action_size = len(self.__possible_actions)

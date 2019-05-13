@@ -12,7 +12,7 @@
   <arg name="initial_pose_y" default="6.0"/>
   <arg name="initial_pose_a" default="0.5"/>
 
-  <arg name="step_size" default="0.01"/>
+  <arg name="step_size" default="0.1"/>
   <arg name="viz_pub_rate" default="30.0"/>
   <arg name="show_viz" default="true"/>  
   <arg name="use_rviz" default="true"/>  

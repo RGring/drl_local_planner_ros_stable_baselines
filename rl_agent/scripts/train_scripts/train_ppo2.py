@@ -16,6 +16,8 @@ from rl_agent.env_wrapper.ros_env_cont_raw_data import RosEnvContRaw
 from rl_agent.env_wrapper.ros_env_disc_raw_data import RosEnvDiscRaw
 from rl_agent.env_wrapper.ros_env_cont_img_vel import RosEnvContImgVel
 from rl_agent.env_wrapper.ros_env_disc_img_vel import RosEnvDiscImgVel
+from rl_agent.env_wrapper.ros_env_cont_raw_scan_prep_wp import RosEnvContRawScanPrepWp
+from rl_agent.env_wrapper.ros_env_disc_raw_scan_prep_wp import RosEnvDiscRawScanPrepWp
 from rl_agent.env_wrapper.ros_env_disc_img import RosEnvDiscImg
 from rl_agent.env_utils.state_collector import StateCollector
 from stable_baselines.common.vec_env import VecNormalize, SubprocVecEnv, VecFrameStack
@@ -35,6 +37,11 @@ def load_train_env(num_envs, robot_radius, rew_fnc, num_stacks, stack_offset, de
             env_temp = RosEnvDiscImg
         else:
             env_temp = RosEnvContImg
+    elif policy == "CNN1DPolicy":
+        if disc_action_space:
+            env_temp = RosEnvDiscRawScanPrepWp
+        else:
+            env_temp = RosEnvContRawScanPrepWp
     elif policy == "CNN1DPolicy_multi_input":
         if disc_action_space:
             env_temp = RosEnvDiscRaw
@@ -107,25 +114,25 @@ def train_agent_ppo2(config, agent_name, total_timesteps, policy,
                           tensorboard_log='%s'%(path_to_tensorboard_log))
 
     # Document agent
-    rospy.loginfo("Starting PPO2 Training of agent: %s" %(agent_name))
-    rospy.loginfo("------------------------------------------------------")
-    rospy.loginfo("gamma \t\t\t\t %f" %model.gamma)
-    rospy.loginfo("n_steps \t\t\t %d" %model.n_steps)
-    rospy.loginfo("ent_coef \t\t\t %f" %model.ent_coef)
-    rospy.loginfo("learning_rate \t\t\t %f" %learning_rate)
-    rospy.loginfo("vf_coef \t\t\t %f" %model.vf_coef)
-    rospy.loginfo("max_grad_norm \t\t\t %f" %model.max_grad_norm)
-    rospy.loginfo("lam \t\t\t\t %f" %model.lam)
-    rospy.loginfo("nminibatches \t\t\t %d" %model.nminibatches)
-    rospy.loginfo("noptepochs \t\t\t %d" %model.noptepochs)
-    rospy.loginfo("cliprange \t\t\t %f" %cliprange)
-    rospy.loginfo("total_timesteps \t\t %d" %total_timesteps)
-    rospy.loginfo("Policy \t\t\t\t %s" %policy)
-    rospy.loginfo("reward_fnc \t\t\t %d" %rew_fnc)
-    rospy.loginfo("Normalized state: %d" % normalize)
-    rospy.loginfo("discrete action space %d" % disc_action_space)
-    rospy.loginfo("Number of stacks: %d, stack offset: %d" % (num_stacks, stack_offset))
-    rospy.loginfo("\n")
+    print("Starting PPO2 Training of agent: %s" %(agent_name))
+    print("------------------------------------------------------")
+    print("gamma \t\t\t\t %f" %model.gamma)
+    print("n_steps \t\t\t %d" %model.n_steps)
+    print("ent_coef \t\t\t %f" %model.ent_coef)
+    print("learning_rate \t\t\t %f" %learning_rate)
+    print("vf_coef \t\t\t %f" %model.vf_coef)
+    print("max_grad_norm \t\t\t %f" %model.max_grad_norm)
+    print("lam \t\t\t\t %f" %model.lam)
+    print("nminibatches \t\t\t %d" %model.nminibatches)
+    print("noptepochs \t\t\t %d" %model.noptepochs)
+    print("cliprange \t\t\t %f" %cliprange)
+    print("total_timesteps \t\t %d" %total_timesteps)
+    print("Policy \t\t\t\t %s" %policy)
+    print("reward_fnc \t\t\t %d" %rew_fnc)
+    print("Normalized state: %d" % normalize)
+    print("discrete action space %d" % disc_action_space)
+    print("Number of stacks: %d, stack offset: %d" % (num_stacks, stack_offset))
+    print("\n")
 
     # Starting training
     if stage == 0:
@@ -189,15 +196,15 @@ if __name__ == '__main__':
                          learning_rate=0.00025,
                          cliprange=0.2,
                          total_timesteps=500000,
-                         policy="CnnPolicy",
+                         policy="CNN1DPolicy",
                          num_envs=num_envs,
                          nminibatches=1,
                          noptepochs=1,
                          debug=True,
-                         rew_fnc = 2.1,
+                         rew_fnc = 3,
                          num_stacks=1,
                          disc_action_space=True,
                          robot_radius = robot_radius,
                          stage=0,
                          pretrained_model_path="ppo_162_4005210",
-                         task_mode="ped")
+                         task_mode="static")

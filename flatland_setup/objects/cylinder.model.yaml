@@ -10,29 +10,29 @@ bodies:  # List of named bodies
         radius: 0.5
         center: [0, 0]
         density: 0
-        layers: ["2d", "static"]
+        layers: ["static"]
         collision: false
       - type: circle
         radius: 0.02
         center: [0.2, 0.1]
         density: 0
-        layers: ["2d", "static"]
+        layers: ["static"]
         collision: false
       - type: circle
         radius: 0.02
         center: [0.2, -0.1]
         density: 0
-        layers: ["2d", "static"]
+        layers: ["static"]
         collision: false
       - type: circle
         radius: 0.02
         center: [-0.2, 0.1]
         density: 0
-        layers: ["2d", "static"]
+        layers: ["static"]
         collision: false
       - type: circle
         radius: 0.02
         center: [-0.2, -0.1]
         density: 0
-        layers: ["2d", "static"]
+        layers: ["static"]
         collision: false
