@@ -145,3 +145,13 @@ class CnnPolicy_multi_input_vel2(FeedForwardPolicy):
         kwargs["multi_input_size"] = 2
         kwargs["max_image_value"] = 100
         super(CnnPolicy_multi_input_vel2, self).__init__(*args, **kwargs, cnn_extractor=cnn_multi_input, feature_extraction="cnn")
+
+# Same as CnnPolicy_multi_input_vel2. Is necessary for executing agents, that were trained on this policy-name
+class CnnPolicy_multi_input_vel3(FeedForwardPolicy):
+    """
+    This class provides a 2D convolutional network for the X-Image Speed Representation
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs["multi_input_size"] = 2
+        kwargs["max_image_value"] = 100
+        super(CnnPolicy_multi_input_vel3, self).__init__(*args, **kwargs, cnn_extractor=cnn_multi_input, feature_extraction="cnn")

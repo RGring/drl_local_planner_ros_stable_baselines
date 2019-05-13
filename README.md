@@ -20,12 +20,12 @@ sudo apt install virtualenv
 1. Setup repository: 
     * Clone this repository in your src-folder of your catkin workspace
     ```
-    cd ~/catkin_ws/src/drl_local_planner_ros_stable_baselines
+    cd <path_to_catkin_ws>/src/drl_local_planner_ros_stable_baselines
     cp .rosinstall ../
     cd ..
     rosws update
-    cd ~/catkin_ws
-    catkin_make 
+    cd <path_to_catkin_ws>
+    catkin_make -DCMAKE_BUILD_TYPE=Release
     ```
     (please install required ros packages)
 
@@ -45,7 +45,7 @@ sudo apt install virtualenv
             cloudpickle \
             mpi4py \
             matplotlib
-    ~/catkin_ws/src/drl_local_planner_forks/stable_baselines/
+    cd <path_to_catkin_ws>/src/drl_local_planner_forks/stable_baselines/
     <path_to_venv>/venv_p3/bin/pip install -e .[docs,tests]
     ```
         
@@ -64,7 +64,7 @@ Copy the example_agents in your "path_to_checkpoint"
     ```
     * Open second terminal:
     ```
-    cd start_scripts
+    cd <path_to_catkin_ws>/src/drl_local_planner_ros_stable_baselines/start_scripts
     ./entrypoint_ppo.sh ppo_1
     ```
     * Two screen sessions are created:
@@ -92,7 +92,7 @@ Copy the example_agents in your "path_to_checkpoint"
     ```
     * Open second terminal:
     ```
-    cd rl_agent/start_scripts
+    cd <path_to_catkin_ws>/src/drl_local_planner_ros_stable_baselines/rl_agent/start_scripts
     ./entrypoint_ppo2.sh ppo2_1 2
     ```
     * Two screen sessions are created:
@@ -130,7 +130,7 @@ Copy the example_agents in your "path_to_checkpoint"
     ```
     * Open third terminal:
     ```
-    source <path_to_venv>/venv_p3/bin/activate 
+    source <path_to_venv>/bin/activate 
     roslaunch rl_agent run_ppo_agent.launch mode:="train"
     ```
     * Open fourth terminal: 
@@ -147,12 +147,11 @@ Copy the example_agents in your "path_to_checkpoint"
     ```
     * Open second terminal: 
     ```
-    roslaunch rl_bringup setup.launch ns:="sim1" 
-    rl_params:="rl_params_img_dyn"
+    roslaunch rl_bringup setup.launch ns:="sim1" rl_params:="rl_params_img_dyn"
     ```
     * Open third terminal:
     ```
-    source <path_to_venv>/venv_p3/bin/activate 
+    source <path_to_venv>/bin/activate 
     roslaunch rl_agent run_ppo2_agent.launch mode:="train"
     ```
     * Open fourth terminal: roslaunch rl_bringup rviz.launch ns:="sim1"
