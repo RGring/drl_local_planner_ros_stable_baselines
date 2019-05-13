@@ -84,8 +84,13 @@ class RosEnvAbs(gym.Env):
         self.__state_collector = state_collector
         if self.debug_:
             self.debugger_ = DebugRosEnv(self.NS)
+
         if self.MODE == "train" or self.MODE == "eval":
-            self.__reward_cont = RewardContainer(self.NS, robot_radius, goal_radius)
+            if (len(self.action_space.shape) == 0):
+                self.__reward_cont = RewardContainer(self.NS, robot_radius, goal_radius, self.v_max_)
+
+            else:
+                self.__reward_cont = RewardContainer(self.NS, robot_radius, goal_radius, self.action_space.high)
             self.__task_generator = TaskGenerator(self.NS, self.__state_collector, self.ROBOT_RADIUS)
 
         # Subscriber
@@ -250,6 +255,8 @@ class RosEnvAbs(gym.Env):
                                                    self.__transformed_goal)
         elif self.REWARD_FUNC == 2.2:
             reward = self.__reward_cont.rew_func_2_2(self.static_scan_, self.ped_scan_, self.wp_, self.twist_, self.__transformed_goal)
+        elif self.REWARD_FUNC == 3:
+            reward = self.__reward_cont.rew_func_3(self.merged_scan_, self.wp_, self.__transformed_goal, action)
         else:
             raise NotImplementedError
 

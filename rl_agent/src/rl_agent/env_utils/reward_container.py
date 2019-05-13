@@ -17,7 +17,7 @@ class RewardContainer():
     """
     This class provides different reward functions and parametrizes them.
     """
-    def __init__(self, ns, robot_radius, goal_radius):
+    def __init__(self, ns, robot_radius, goal_radius, max_trans_vel):
         self.old_wps = []
         self.old_closest_wp = 0
         self.__update_rate = 1/rospy.get_param("%s/rl_agent/update_frequency"%ns)
@@ -25,7 +25,7 @@ class RewardContainer():
         self.__robot_radius = robot_radius
         self.__goal_radius = goal_radius
         self.__still_time = 0.0
-        self.__max_trans_vel = 0.5
+        self.__max_trans_vel = max_trans_vel
 
 
     def reset(self, wps):
@@ -58,6 +58,32 @@ class RewardContainer():
         goal_reached_rew = self.__get_goal_reached_rew(transformed_goal, 10)
         rew = (wp_approached_rew + obstacle_punish + goal_reached_rew)
         rew = self.__check_reward(rew, obstacle_punish, goal_reached_rew, 2.5)
+        return rew
+
+    def rew_func_3(self, scan, wps, transformed_goal, action):
+        '''
+        Reward function designed for static training setup
+        :param scan: laser scan of environment
+        :param wps: next waypoints on path
+        :param transformed_goal: final goal in robot frame
+        :return: reward value
+        '''
+        min_scan_dist = np.amin(scan.ranges)
+
+        if (min_scan_dist < (self.__robot_radius + 0.5) ):
+            wp_approached_rew = self.__get_wp_approached(wps, 3.5, 2.5, 1.0)
+            wp_approached_rew = 0
+        else:
+            wp_approached_rew = self.__get_wp_approached(wps, 3.5, 2.5, 1.0)
+
+        obstacle_punish = self.__get_obstacle_punish(scan.ranges , 15, self.__robot_radius)
+        goal_reached_rew = self.__get_goal_reached_rew(transformed_goal, 10)
+        replanning = 0.0
+        if (action[0] < 0.0):
+            replanning = -5
+
+        rew = (wp_approached_rew + obstacle_punish + goal_reached_rew + replanning)
+        # rew = self.__check_reward(rew, obstacle_punish, goal_reached_rew, 2.5)
         return rew
 
     def rew_func_2_1(self, static_scan, ped_scan_msg, wps, twist, transformed_goal):
@@ -279,7 +305,7 @@ class RewardContainer():
             wp_approached =  k
         else:
             diff = (self.old_wps[0] - dist_to_waypoint[0])
-            if (abs(diff) > self.__max_trans_vel*self.__update_rate*3/2):
+            if (abs(diff) > self.__max_trans_vel*self.__update_rate*4):
                 diff = 0
             if (diff < 0):
                 wp_approached = punish_fac * diff

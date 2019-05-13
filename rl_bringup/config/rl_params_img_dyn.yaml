@@ -1,19 +1,6 @@
 rl_agent:
   state_mode: 0  # 0: image, 1: laserscan
-  train_mode: 1 # 0: Execution in Simulation, 1: Training, 2: Execution in Real World
-  f_scan_topic: f_scan
-  b_scan_topic: b_scan
-  robot_frame: base_footprint
-  static_obstacles: true
-  dynamic_obstacles: true
-  update_frequency: 10
-  goal_theshold: 0.6
-
-  num_of_wps: 8
-  look_ahead_distance: 1.5
-  wp_reached_dist: 0.2
-
-
+  
   img_width_pos: 70
   img_width_neg: 20 
   img_height: 70 

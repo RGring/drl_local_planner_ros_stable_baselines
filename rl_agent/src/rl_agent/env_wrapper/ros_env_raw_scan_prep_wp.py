@@ -48,7 +48,7 @@ class RosEnvRawScanPrepWp(RosEnvAbs):
         for i in range(num_of_wps):
             dist = math.sqrt(math.pow(waypoint.points[i].x, 2) + math.pow(waypoint.points[i].y, 2))
             angle = math.atan2(waypoint.points[i].y, waypoint.points[i].x) + math.pi
-            wp_vector[int(angle/self.merged_scan_.angle_increment)] = dist
+            wp_vector[math.floor(angle/self.merged_scan_.angle_increment)] = dist
         state[0,:,1] = wp_vector
 
         # Discretize to a resolution of 5cm.

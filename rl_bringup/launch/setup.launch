@@ -13,6 +13,7 @@
     <group ns="$(arg ns)" if="$(eval ns != '')">
 
         <rosparam file="$(find rl_bringup)/config/$(arg rl_params).yaml" command="load" />
+        <rosparam file="$(find rl_bringup)/config/rl_common.yaml" command="load" />
         
         <!-- Start navigation stack-->
         <include file="$(find rl_bringup)/launch/sub_launch/navigation.launch">

@@ -8,7 +8,7 @@ bodies:  # List of named bodies
         sensor: true
         points: [[-0.445, -0.29], [-0.445, 0.29], [0.445, 0.29], [0.445, -0.29]]
         density: 0
-        layers: ["2d"]
+        layers: ["static"]
         collision: false
 
 plugins:
@@ -19,32 +19,6 @@ plugins:
     odom_pub: odom  # topic odom is published on
     pub_rate: 10
   
-  # - type: Laser
-  #   name: front_laser_link
-  #   frame: front_laser_link
-  #   topic: f_scan #f_scan
-  #   body: base_footprint
-  #   broadcast_tf: true
-  #   origin: [0.4253, 0.2345, 0.7854]
-  #   range: 29
-  #   angle: {min: -2.356194490192345, max: 2.356194490192345, increment: 0.00872664625}
-  #   noise_std_dev: 0.015
-  #   update_rate: 10
-  #   layers: ["2d"]
-
-  # - type: Laser
-  #   name: back_laser_link
-  #   frame: back_laser_link
-  #   topic: b_scan #b_scan
-  #   body: base_footprint
-  #   broadcast_tf: true
-  #   origin: [-0.3609, -0.2345, -2.35619]
-  #   range: 29
-  #   angle: {min: -2.356194490192345, max: 2.356194490192345, increment: 0.00872664625}
-  #   noise_std_dev: 0.015
-  #   update_rate: 10
-  #   layers: ["2d"]
-
   - type: Laser
     name: static_laser
     frame: static_laser_link
@@ -52,9 +26,9 @@ plugins:
     body: base_footprint
     broadcast_tf: true
     origin: [0.0, 0.0, 0.0]
-    range: 20
+    range: 10
     # angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.05235987755}
-    angle: {min: -3.14159265359, max: 3.124139361, increment: 0.01745329251}
+    angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.01745329251}
     noise_std_dev: 0.015
     update_rate: 10
     layers: ["static"]
@@ -66,9 +40,9 @@ plugins:
     body: base_footprint
     broadcast_tf: true
     origin: [0.0, 0.0, 0.0]
-    range: 20
+    range: 10
     # angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.05235987755}
-    angle: {min: -3.14159265359, max: 3.124139361, increment: 0.01745329251}
+    angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.01745329251}
     noise_std_dev: 0.015
     update_rate: 10
     layers: ["ped"]
