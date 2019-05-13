@@ -80,14 +80,14 @@ def run_ppo(config, state_collector, approach = "PPO1", agent_name ="ppo_99_8507
     # Loading agent
     model = eval(approach).load("%s/%s" % (path_to_checkpoint, agent_name))
 
-    rospy.loginfo("Loaded %s" % agent_name)
-    rospy.loginfo("--------------------------------------------------")
-    rospy.loginfo("Normalize: ", normalize)
-    rospy.loginfo("Policy: %s" % policy)
-    rospy.loginfo("Discrete action space: ", disc_action_space)
-    rospy.loginfo("Observation space size: ", model.observation_space.shape)
-    rospy.loginfo("Debug: ", debug)
-    rospy.loginfo("Number of stacks: %d, stack offset: %d" % ( model.observation_space.shape[2], stack_offset))
+    print("Loaded %s" % agent_name)
+    print("--------------------------------------------------")
+    print("Normalize: ", normalize)
+    print("Policy: %s" % policy)
+    print("Discrete action space: ", disc_action_space)
+    print("Observation space size: ", model.observation_space.shape)
+    print("Debug: ", debug)
+    print("Number of stacks: %d, stack offset: %d" % ( model.observation_space.shape[2], stack_offset))
     print("\n")
 
 
@@ -122,7 +122,7 @@ def run_ppo(config, state_collector, approach = "PPO1", agent_name ="ppo_99_8507
 
             # Episode over?
             if dones:
-                rospy.loginfo("Episode finished with reward of %f."% cum_reward)
+                print("Episode finished with reward of %f."% cum_reward)
                 cum_reward = 0
 
         time.sleep(0.0001)

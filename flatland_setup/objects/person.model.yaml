@@ -21,7 +21,7 @@ bodies:  # List of named bodies
         radius: 0.1
         center: [0.15, 0]
         density: 1
-        layers: ["2d", "ped"]
+        layers: ["ped"]
         collision: false
 
   - name: right_leg
@@ -33,7 +33,7 @@ bodies:  # List of named bodies
         radius: 0.1
         center: [-0.15, 0]
         density: 1
-        layers: ["2d", "ped"]
+        layers: ["ped"]
         collision: false
 
 plugins:

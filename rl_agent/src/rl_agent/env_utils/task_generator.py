@@ -201,9 +201,11 @@ class TaskGenerator():
         # Spawning new obstacles
         self.__remove_all_peds()
         self.remove_all_static_objects()
-        if self.__is_new_path_available(d["goal"], d["start"]):
-            self.__spawn_random_static_objects()
-            self.__spawn_random_peds_on_path()
+        while not self.__is_new_path_available(d["goal"], d["start"]):
+            d["goal"] = self.__publish_random_goal_()
+
+        self.__spawn_random_static_objects()
+        self.__spawn_random_peds_on_path()
         d["peds"] = self.__peds
         d["path"] = self.__path
         d["static_objects"] = self.__static_objects
@@ -646,13 +648,13 @@ class TaskGenerator():
         """
         is_available = False
         begin = time.time()
-        while (time.time() - begin) < 20.0:
-            if self.__path.header.stamp <= self.__old_path_stamp or len(self.__path.poses) == 0:
-                time.sleep(0.01)
-            else:
-                is_available = True
-                break
-        self.__old_path_stamp = self.__path.header.stamp
+        #while (time.time() - begin) < 1.0:
+        if self.__path.header.stamp <= self.__old_path_stamp or len(self.__path.poses) == 0:
+            time.sleep(0.01)
+        else:
+            is_available = True
+            #break
+            self.__old_path_stamp = self.__path.header.stamp
         dist_goal = 10
         dist_start = 10
 
@@ -664,7 +666,7 @@ class TaskGenerator():
                                                 (start[1] - self.__path.poses[0].pose.position.y))
         if not is_available or dist_goal > 0.5 or dist_start > 0.5:
             is_available = False
-            print("path not valid!")
+            #print("path not valid!")
         return is_available
 
     def __generate_rand_pos_near_pos(self, path_pose, max_r, alpha):
