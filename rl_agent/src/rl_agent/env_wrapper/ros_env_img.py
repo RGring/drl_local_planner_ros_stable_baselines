@@ -22,8 +22,9 @@ class RosEnvImg(RosEnvAbs):
     This (abstract) class is a simulation environment wrapper for
     the X-Image Representation.
     '''
-    def __init__(self, ns, state_collector, execution_mode, task_mode, state_size, observation_space, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc):
-        super(RosEnvImg, self).__init__(ns, state_collector, execution_mode, task_mode, state_size, observation_space, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc)
+    def __init__(self, ns, state_collector, execution_mode, task_mode, state_size, observation_space, stack_offset, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc):
+        state_collector.set_state_mode(0)
+        super(RosEnvImg, self).__init__(ns, state_collector, execution_mode, task_mode, state_size, observation_space, stack_offset, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc)
 
 
     def get_observation_(self):

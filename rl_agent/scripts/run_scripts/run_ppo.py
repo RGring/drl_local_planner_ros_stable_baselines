@@ -11,6 +11,7 @@
 import os
 home = os.path.expanduser("~")
 import sys
+sys.path.insert(0, "/home/ronja/venv_py3/lib/python3.5/site-packages")
 import rospy
 import rospkg
 import configparser
@@ -25,6 +26,8 @@ from rl_agent.env_wrapper.ros_env_cont_img_vel import RosEnvContImgVel
 from rl_agent.env_wrapper.ros_env_disc_img_vel import RosEnvDiscImgVel
 from rl_agent.env_wrapper.ros_env_disc_img import RosEnvDiscImg
 from rl_agent.env_utils.state_collector import StateCollector
+
+
 from stable_baselines.common.vec_env import DummyVecEnv, VecNormalize, VecFrameStack
 from stable_baselines.ppo2.ppo2 import PPO2
 from stable_baselines.ppo1.pposgd_simple import PPO1
@@ -37,7 +40,7 @@ def load_train_env(ns, state_collector, robot_radius, rew_fnc, num_stacks,
             env_temp = RosEnvDiscImg
         else:
             env_temp = RosEnvContImg
-    elif policy == "CNN1DPolicy":
+    elif policy in ["CNN1DPolicy", "CNN1DPolicy2", "CNN1DPolicy3"]:
         if disc_action_space:
             env_temp = RosEnvDiscRawScanPrepWp
         else:
@@ -53,7 +56,8 @@ def load_train_env(ns, state_collector, robot_radius, rew_fnc, num_stacks,
         else:
             env_temp = RosEnvContImgVel
 
-    env_raw = DummyVecEnv([lambda: env_temp(ns, state_collector, robot_radius, rew_fnc, debug, rl_mode, task_mode)])
+
+    env_raw = DummyVecEnv([lambda: env_temp(ns, state_collector, stack_offset, num_stacks, robot_radius, rew_fnc, debug, rl_mode, task_mode)])
 
     if normalize:
         env = VecNormalize(env_raw, training=True, norm_obs=True, norm_reward=False, clip_obs=100.0, clip_reward=10.0,
@@ -69,16 +73,16 @@ def load_train_env(ns, state_collector, robot_radius, rew_fnc, num_stacks,
 
 
 def run_ppo(config, state_collector, approach = "PPO1", agent_name ="ppo_99_8507750", policy ="CnnPolicy", mode="train", task_mode="static",
-             stack_offset=15, debug=True, normalize = True, disc_action_space = False, ns=""):
+             stack_offset=15, num_stacks=1, debug=True, normalize = True, disc_action_space = False, ns=""):
 
     if approach != "PPO1" and approach != "PPO2":
         rospy.logerr("Wrong approach: %s.\n Only two different kind of approaches are excepted: PPO1, PPO2."%approach)
         return
 
-    path_to_checkpoint = config['PATHES']['path_to_checkpoint']
+    path_to_models = config['PATHES']['path_to_models']
 
     # Loading agent
-    model = eval(approach).load("%s/%s" % (path_to_checkpoint, agent_name))
+    model = eval(approach).load("%s/%s/%s" % (path_to_models, agent_name, agent_name))
 
     print("Loaded %s" % agent_name)
     print("--------------------------------------------------")
@@ -92,7 +96,7 @@ def run_ppo(config, state_collector, approach = "PPO1", agent_name ="ppo_99_8507
 
 
     #Loading environment
-    env = load_train_env(ns, state_collector, 0.46, 1, model.observation_space.shape[2], stack_offset, True, task_mode, mode, policy, disc_action_space, normalize)
+    env = load_train_env(ns, state_collector, 0.46, 3, num_stacks, stack_offset, debug, task_mode, mode, policy, disc_action_space, normalize)
 
     # Resetting environment
     if mode == "train" or mode == "eval":
@@ -151,15 +155,17 @@ if __name__ == '__main__':
                  normalize=bool(int(sys.argv[5])),
                  disc_action_space=bool(int(sys.argv[6])),
                  approach=str(sys.argv[7]),
-                 task_mode=str(sys.argv[8]))
+                 task_mode=str(sys.argv[8]),
+                 num_stacks=int(sys.argv[9]))
 
-# for quick testing
+    # for quick testing
     else:
         mode = "train"
         ns = "sim1"
         policy = "CnnPolicy_multi_input_vel2"
-        approach = "PPO2"                       # Either PPO1 or PPO2
+        approach = "PPO2"  # Either PPO1 or PPO2
         agent_name = "ppo2_35_8001000"
+
         sc = StateCollector(ns, mode)
 
         run_ppo(config, sc,
@@ -170,7 +176,7 @@ if __name__ == '__main__':
                  normalize=False,
                  disc_action_space=True,
                  task_mode="ped",
+                 num_stacks=4,
                  stack_offset = 15,
                  approach=approach,
                  ns=ns)
-

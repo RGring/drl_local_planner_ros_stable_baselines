@@ -29,12 +29,12 @@ class RosEnvDiscRawScanPrepWp(RosEnvRawScanPrepWp):
     the Polar Representation
     with discrete action space
     '''
-    def __init__(self, ns, state_collector, robot_radius = 0.46, reward_fnc=6, debug=False, execution_mode="train", task_mode="static"):
+    def __init__(self, ns, state_collector, stack_offset, stack_size, robot_radius = 0.46, reward_fnc=6, debug=False, execution_mode="train", task_mode="static"):
         state_size_t = rospy.get_param("%s/rl_agent/scan_size"% ns)
-        state_size = (1, state_size_t, 2)
-        observation_space = spaces.Box(low=0, high=6, shape=state_size, dtype=np.float)
+        state_size = (state_size_t,2, 1)
+        observation_space = spaces.Box(low=0, high=10, shape=state_size, dtype=np.float)
 
-        self.v_max_ = 0.8
+        self.v_max_ = 0.8 # ?1.5?
         self.w_max_ = 1.2
         self.__possible_actions = {
             0: [0.0, -self.w_max_],
@@ -42,13 +42,11 @@ class RosEnvDiscRawScanPrepWp(RosEnvRawScanPrepWp):
             2: [0.0, self.w_max_],
             3: [self.v_max_, self.w_max_ / 2],
             4: [self.v_max_, -self.w_max_ / 2],
-            5: [0.0, 0.0]
-            # 6: [-1.0, 0.0]
+            5: [0.0, 0.0],
         }
         action_size = len(self.__possible_actions)
-
         action_space = spaces.Discrete(action_size)
-        super(RosEnvDiscRawScanPrepWp, self).__init__(ns, state_collector, execution_mode, task_mode, state_size, observation_space, action_size, action_space, debug, GOAL_RADIUS, WAYPOINT_RADIUS, robot_radius, reward_fnc)
+        super(RosEnvDiscRawScanPrepWp, self).__init__(ns, state_collector, execution_mode, task_mode, state_size, observation_space, stack_offset, action_size, action_space, debug, GOAL_RADIUS, WAYPOINT_RADIUS, robot_radius, reward_fnc)
         self.action = np.array([0.0, 0.0])
 
     def get_cmd_vel_(self, action):

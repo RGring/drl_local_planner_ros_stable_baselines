@@ -26,9 +26,9 @@ class DebugRosEnv():
         - input state
         - rewards
         """
-    def __init__(self, ns):
+    def __init__(self, ns, stack_offset):
         self.__ns = ns
-        self.__stack_offset = 15
+        self.__stack_offset = stack_offset
         self.__input_images = deque(maxlen=4 * self.__stack_offset)
 
         #Input state

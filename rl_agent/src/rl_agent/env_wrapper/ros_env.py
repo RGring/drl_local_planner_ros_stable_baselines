@@ -30,14 +30,13 @@ from nav_msgs.msg import OccupancyGrid
 from rl_agent.env_utils.debug_ros_env import DebugRosEnv
 from rl_agent.env_utils.reward_container import RewardContainer
 from rl_agent.env_utils.task_generator import TaskGenerator
-
 class RosEnvAbs(gym.Env):
     '''
     This (abstract) class is a simulation environment wrapper.
     It communicates with the BaseLocalPlanner in ROS and
     provides all relevant methods for the RL-library stable baselines.
     '''
-    def __init__(self, ns, state_collector, execution_mode, task_mode, state_size, observation_space, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc):
+    def __init__(self, ns, state_collector, execution_mode, task_mode, state_size, observation_space, stack_offset, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc):
         super(RosEnvAbs, self).__init__()
         rospy.init_node("ros_env_%s"%ns, anonymous=True)
 
@@ -59,7 +58,7 @@ class RosEnvAbs(gym.Env):
         self.twist_ = TwistStamped()                    # speed of robot
         self.__trigger = False                          # triggers agent to get state and compute action
         self.debug_ = debug                             # enable debugging
-        self.__done = True                              # Episode done?
+        self.done_ = True                              # Episode done?
         self.merged_scan_ = LaserScan()
 
         if self.MODE == "train" or self.MODE == "eval":
@@ -83,14 +82,12 @@ class RosEnvAbs(gym.Env):
         # Helper Classes
         self.__state_collector = state_collector
         if self.debug_:
-            self.debugger_ = DebugRosEnv(self.NS)
-
+            self.debugger_ = DebugRosEnv(self.NS, stack_offset)
         if self.MODE == "train" or self.MODE == "eval":
-            if (len(self.action_space.shape) == 0):
+            if len(self.action_space.shape) == 0:
                 self.__reward_cont = RewardContainer(self.NS, robot_radius, goal_radius, self.v_max_)
-
             else:
-                self.__reward_cont = RewardContainer(self.NS, robot_radius, goal_radius, self.action_space.high)
+                self.__reward_cont = RewardContainer(self.NS, robot_radius, goal_radius, self.action_space.high[0])
             self.__task_generator = TaskGenerator(self.NS, self.__state_collector, self.ROBOT_RADIUS)
 
         # Subscriber
@@ -109,8 +106,10 @@ class RosEnvAbs(gym.Env):
         :return: obs, reward, done, info
         """
         # Publishing action
+        # start = time.time()
         action = self.get_cmd_vel_(action)
         self.__agent_action_pub.publish(action)
+        # print("publish cmd_vel: %f"%(time.time() - start))
 
         # waiting for robot-cycle to end
         begin = time.time()
@@ -122,24 +121,31 @@ class RosEnvAbs(gym.Env):
                     self.reset()
                     self.__agent_action_pub.publish(action)
                     begin = time.time()
-            time.sleep(0.0001)
+            time.sleep(0.00001)
         self.__trigger = False
+        # print("waiting for BaseLocalPlanner: %f"%(time.time() - begin))
 
+        # start = time.time()
         self.__collect_state()
-        obs = self.get_observation_()
+        # print("__collect_state: %f"%(time.time() - start))
 
+        # start = time.time()
+        obs = self.get_observation_()
+        # print("get_observation_: %f"%(time.time() - start))
+        info = {}
         if self.MODE == "train" or self.MODE == "train_demo" or self.MODE == "eval":
-            info = [self.__num_iterations]
+            # start = time.time()
+            #info = [self.__num_iterations]
             action = np.array([action.linear.x, action.angular.z])
             reward = self.__compute_reward(action)
-            self.__done, done_reason = self.__is_done(self.__num_iterations, self.static_scan_.ranges, self.ped_scan_.ranges, reward)
-            info.append(done_reason)
+            self.done_, done_reason = self.__is_done(self.__num_iterations, self.static_scan_.ranges, self.ped_scan_.ranges, reward)
+            info["done_reason"] = done_reason
+            # print("reward, done, ...: %f" % (time.time() - start))
         else:
             reward = 0
-            self.__done = False
-            info = ""
+            self.done_ = False
 
-        return obs, reward, self.__done, info
+        return obs, reward, self.done_, info
 
     def close(self):
         """
@@ -162,6 +168,8 @@ class RosEnvAbs(gym.Env):
         if (self.MODE == "train" or self.MODE == "eval"):
             if self.__task_mode == "ped":
                 self.__task_generator.set_random_ped_task()
+            elif self.__task_mode == "ped_short":
+                self.__task_generator.set_random_short_ped_task()
             elif self.__task_mode == "static":
                 self.__task_generator.set_random_static_task()
             elif self.__task_mode == "toggle_ped_static":
@@ -227,20 +235,9 @@ class RosEnvAbs(gym.Env):
         raw laser scans
         waypoints in robot frame.
         """
-        [static_scan, ped_scan, merged_scan, img, wp, twist, goal] = self.__state_collector.get_state()
-
-        self.input_img_ = img
-        self.merged_scan_ = merged_scan
-        self.wp_ = wp
-        self.twist_ = twist
-
-        if self.MODE == "train" or self.MODE == "train_demo" or self.MODE == "eval":
-            self.static_scan_ = static_scan
-            self.ped_scan_ = ped_scan
-            self.__transformed_goal = goal
-
-            if(self.debug_):
-                self.debugger_.show_wp(self.wp_)
+        [self.static_scan_, self.ped_scan_, self.merged_scan_, self.input_img_, self.wp_, self.twist_, self.__transformed_goal] = self.__state_collector.get_state()
+        if(self.debug_):
+            self.debugger_.show_wp(self.wp_)
 
     def __compute_reward(self, action):
         """
@@ -256,7 +253,9 @@ class RosEnvAbs(gym.Env):
         elif self.REWARD_FUNC == 2.2:
             reward = self.__reward_cont.rew_func_2_2(self.static_scan_, self.ped_scan_, self.wp_, self.twist_, self.__transformed_goal)
         elif self.REWARD_FUNC == 3:
-            reward = self.__reward_cont.rew_func_3(self.merged_scan_, self.wp_, self.__transformed_goal, action)
+            reward = self.__reward_cont.rew_func_19(self.static_scan_, self.ped_scan_, self.wp_, self.twist_,
+                                                    self.__transformed_goal)
+
         else:
             raise NotImplementedError
 
@@ -295,8 +294,8 @@ class RosEnvAbs(gym.Env):
             return [True, 5]
         elif num_iterations > max_iteration:
             return [True, 3]
-        elif self.MODE == "train" and self.mean_sqare_dist_(self.wp_.points[0].x, self.wp_.points[0].y) > 4:
-            return [True, 4]
+        # elif self.MODE == "train" and self.mean_sqare_dist_(self.wp_.points[0].x, self.wp_.points[0].y) > 4:
+        #     return [True, 4]
 
         self.__num_iterations += 1
         return [False, 0]

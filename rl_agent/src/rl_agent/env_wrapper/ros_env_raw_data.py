@@ -20,9 +20,10 @@ class RosEnvRaw(RosEnvAbs):
     This (abstract) class is a simulation environment wrapper for
     the Raw Representation.
     '''
-    def __init__(self, ns, state_collector, execution_mode, task_mode, state_size, observation_space, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc):
+    def __init__(self, ns, state_collector, execution_mode, task_mode, state_size, observation_space, stack_offset, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc):
+        state_collector.set_state_mode(2)
 
-        super(RosEnvRaw, self).__init__(ns, state_collector, execution_mode, task_mode, state_size, observation_space, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc)
+        super(RosEnvRaw, self).__init__(ns, state_collector, execution_mode, task_mode, state_size, observation_space, stack_offset, action_size, action_space, debug, goal_radius, wp_radius, robot_radius, reward_fnc)
         self.__scan_size = rospy.get_param("%s/rl_agent/scan_size"%ns)
 
     def get_observation_(self):

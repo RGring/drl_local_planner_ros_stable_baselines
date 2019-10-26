@@ -18,15 +18,15 @@ from rl_msgs.srv import StateImageGenerationSrv
 from geometry_msgs.msg import TwistStamped, PoseStamped, Pose
 from std_srvs.srv import SetBool
 from rl_msgs.srv import MergeScans
-
+import time
 
 class StateCollector():
     """
     This class collects most recent relevant state data of the environment of the RL-agent.
     """
-    def __init__(self, ns, mode):
+    def __init__(self, ns, train_mode):
         # Class variables
-        self.__mode = mode                      # Mode of RL-agent (Training or Executrion ?)
+        self.__mode = train_mode                      # Mode of RL-agent (Training or Executrion ?)
         self.__ns = ns                          # namespace of simulation environment
         self.__is__new = False                  # True, if waypoint reached
         self.__static_scan = LaserScan()        # Laserscan only contains static objects
@@ -40,8 +40,9 @@ class StateCollector():
         self.__wps= Waypoint()                  # most recent Waypoints
         self.__twist = TwistStamped()           # most recent velocity
         self.__goal = Pose()                    # most recent goal position in robot frame
-        self.__state_mode = rospy.get_param("%s/rl_agent/state_mode" % (self.__ns), 1)      # 0, if image as input state representation
-                                                                                            # 1, if scan as input state representation
+        self.__state_mode = 2                   # 0, if image as input state representation
+                                                # 1, if stacked image representation in same frame
+                                                # 2, if scan as input state representation
 
 
 
@@ -94,8 +95,12 @@ class StateCollector():
             # while self.__static_scan.header.stamp.to_sec() + 0.11 < float(resp.message):
             #     time.sleep(0.005)
 
+            # start = time.time()
             static_scan_msg = self.__remove_nans_from_scan(self.__static_scan)
             ped_scan_msg = self.__remove_nans_from_scan(self.__ped_scan)
+            # print("__remove_nans_from_scan: %f" % (time.time() - start))
+
+            # start = time.time()
             merged_scan = LaserScan()
             merged_scan.header.frame_id = "base_footprint"
             merged_scan.header.stamp = static_scan_msg.header.stamp
@@ -104,11 +109,19 @@ class StateCollector():
             merged_scan.range_min = static_scan_msg.range_min
             merged_scan.angle_increment = static_scan_msg.angle_increment
             merged_scan.angle_min = static_scan_msg.angle_min
+            merged_scan.angle_max = static_scan_msg.angle_max
+            # print("merge_scan: %f" % (time.time() - start))
+            # start = time.time()
             wp_cp = copy.deepcopy(self.__wps)
             self.__wps.is_new.data = False
+            # print("deep_copy: %f" % (time.time() - start))
+
+            start = time.time()
             if (self.__state_mode == 0):
+                # ToDo: Service call takes very long. Find more efficient solution!
                 resp = self.__img_srv(merged_scan, wp_cp)
                 self.__img = resp.img
+                # print("img service call: %f" % (time.time() - start))
             else:
                 self.__img = []
             return static_scan_msg, ped_scan_msg, merged_scan, self.__img, wp_cp, self.__twist, self.__goal
@@ -134,6 +147,9 @@ class StateCollector():
         """
         scan_msg = self.__remove_nans_from_scan(self.__static_scan)
         return scan_msg
+
+    def set_state_mode(self, state_mode):
+        self.__state_mode = state_mode
 
     def __remove_nans_from_scan(self, scan_msg):
         """

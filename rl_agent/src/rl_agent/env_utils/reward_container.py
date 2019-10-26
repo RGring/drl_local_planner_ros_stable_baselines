@@ -60,30 +60,42 @@ class RewardContainer():
         rew = self.__check_reward(rew, obstacle_punish, goal_reached_rew, 2.5)
         return rew
 
-    def rew_func_3(self, scan, wps, transformed_goal, action):
+    def rew_func_19(self, static_scan, ped_scan_msg, wps, twist, transformed_goal):
         '''
-        Reward function designed for static training setup
-        :param scan: laser scan of environment
-        :param wps: next waypoints on path
-        :param transformed_goal: final goal in robot frame
-        :return: reward value
-        '''
-        min_scan_dist = np.amin(scan.ranges)
-
-        if (min_scan_dist < (self.__robot_radius + 0.5) ):
-            wp_approached_rew = self.__get_wp_approached(wps, 3.5, 2.5, 1.0)
-            wp_approached_rew = 0
+                Reward function designed for dynamic training setup
+                :param static_scan: laser scan containing information about static obstacles.
+                :param ped_scan_msg: laser scan containing information about dynamic obstacles.
+                :param wps: next waypoints on path
+                :param twist: velocity of robot
+                :param transformed_goal: final goal in robot frame
+                :return: reward value
+                '''
+        standing_still_punish = 0
+        if (abs(twist.twist.linear.x) < 0.001 and abs(twist.twist.angular.z) < 0.001):
+            standing_still_punish = -0.001
+            self.__still_time += 0.1
         else:
-            wp_approached_rew = self.__get_wp_approached(wps, 3.5, 2.5, 1.0)
+            self.__still_time = 0.0
 
-        obstacle_punish = self.__get_obstacle_punish(scan.ranges , 15, self.__robot_radius)
+        if (abs(twist.twist.linear.x) < 0.001 and abs(twist.twist.angular.z) > 0.001):
+            standing_still_punish = -0.01
+
+        wp_approached_rew = self.__get_wp_approached(wps, 5.5, 4.5, 0.0)
+
+        # Did the agent bump into an obstacle?
+        obstacle_punish_static = self.__get_obstacle_punish(static_scan.ranges, 7, self.__robot_radius)
+        obstacle_punish_ped = 0
+        if (self.__still_time < 0.8):
+            obstacle_punish_ped = self.__get_obstacle_punish(ped_scan_msg.ranges, 7, 0.85)
+        obstacle_punish = min(obstacle_punish_ped, obstacle_punish_static)
+
+        # Did the agent reached the goal?
         goal_reached_rew = self.__get_goal_reached_rew(transformed_goal, 10)
-        replanning = 0.0
-        if (action[0] < 0.0):
-            replanning = -5
 
-        rew = (wp_approached_rew + obstacle_punish + goal_reached_rew + replanning)
-        # rew = self.__check_reward(rew, obstacle_punish, goal_reached_rew, 2.5)
+        rew = (wp_approached_rew + obstacle_punish + goal_reached_rew + standing_still_punish)
+        if (rew < -2.5):
+            test = "debug"
+        rew = self.__check_reward(rew, obstacle_punish, goal_reached_rew, 2.5)
         return rew
 
     def rew_func_2_1(self, static_scan, ped_scan_msg, wps, twist, transformed_goal):
