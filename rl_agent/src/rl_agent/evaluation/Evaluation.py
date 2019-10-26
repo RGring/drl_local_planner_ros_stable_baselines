@@ -47,8 +47,9 @@ class Evaluation():
         self.__recent_agent_states = []
 
         # Subscriber for getting data
-        self.__odom_sub = rospy.Subscriber("%s/odom"%self.__NS, Odometry, self.__odom_callback, queue_size=1)
+        #self.__odom_sub = rospy.Subscriber("%s/odom"%self.__NS, Odometry, self.__odom_callback, queue_size=1)
         self.__global_plan_sub = rospy.Subscriber("%s/move_base/NavfnROS/plan"%self.__NS, Path, self.__path_callback, queue_size=1)
+        # self.__path_sub = rospy.Subscriber("%s/move_base/GlobalPlanner/plan" % self.__NS, Path, self.__path_callback,  queue_size=1)
         self.__done_sub = rospy.Subscriber("%s/rl_agent/done"%self.__NS, Bool, self.__done_callback, queue_size=1)
         self.__new_task_sub = rospy.Subscriber('%s/rl_agent/new_task_started'%self.__NS, Bool, self.__new_task_callback, queue_size=1)
         self.__flatland_topics_sub = rospy.Subscriber("%s/flatland_server/debug/topics"%self.__NS, DebugTopicList, self.__flatland_topic_callback, queue_size=1)
@@ -101,7 +102,11 @@ class Evaluation():
         :return result of the episode.
 
         """
-        result = {"global_path": self.__path, "agent_states": []}
+        result = {}
+        if not train:
+            result["global_path"] = self.__path
+            result["agent_states"] = []
+
         done = False
         max_time = len(self.__path.poses)/10*2  # in secs
         if not self.MODE == 2:
@@ -142,20 +147,23 @@ class Evaluation():
             if (not train):
                 result["agent_states"].append(self.__recent_agent_states)
             self.__sleep(0.1)
-        result["num_stat_obj"] = 0
-        result["num_peds"] = 0
 
-        #Counting number of static objects and number of dynamic objects (pedestrians)
-        for topic in self.__flatland_topics:
-            if topic.find("stat_obj") != -1:
-                result["num_stat_obj"] +=1
-                continue
-            if topic.find("person") != -1:
-                result["num_peds"] +=1
+        # Info that we don't want to capture during training
+        if not train:
+            result["num_stat_obj"] = 0
+            result["num_peds"] = 0
 
-        driven_route.poses = poses
-        result["time"] = self.__clock - start_time
-        result["driven_path"] = driven_route
+            #Counting number of static objects and number of dynamic objects (pedestrians)
+            for topic in self.__flatland_topics:
+                if topic.find("stat_obj") != -1:
+                    result["num_stat_obj"] +=1
+                    continue
+                if topic.find("person") != -1:
+                    result["num_peds"] +=1
+
+            driven_route.poses = poses
+            result["time"] = self.__clock - start_time
+            result["driven_path"] = driven_route
         result["timestep"] = self.__timestep
         return result
 

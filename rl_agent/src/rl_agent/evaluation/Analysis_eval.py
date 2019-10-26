@@ -34,6 +34,26 @@ class Analysis():
 
         return timesteps
 
+    def reconstruct_timestep_array(self, timesteps):
+        previous_ts = timesteps[0]
+        break_indices = []
+
+        for i, ts in enumerate(timesteps):
+            if (previous_ts - ts) >1000:
+                break_indices.append(i)
+            previous_ts = ts
+
+        break_indices.append((len(timesteps)))
+        for k in range(len(break_indices)-1):
+            base_timestep = timesteps[break_indices[k]-1]
+            for j in range(break_indices[k], break_indices[k+1]):
+                timesteps[j] = base_timestep + timesteps[j]
+
+        return timesteps
+
+
+
+
 
     def get_scores(self, results):
         """

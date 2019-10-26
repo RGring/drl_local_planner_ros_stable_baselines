@@ -36,7 +36,7 @@ if __name__ == '__main__':
     ns = "sim1"
     name = ""
     task_type = "ped"                    # static, ped
-    complexity = "average"                  # simple, average, complex
+    complexity = "complex_map_1"                  # simple, average, complex
 
     rospack = rospkg.RosPack()
     rl_agent_path = rospack.get_path('rl_agent')
@@ -70,13 +70,17 @@ if __name__ == '__main__':
             print("\n")
         elif (task_type == "ped"):
             d = t_g.set_random_ped_task()
+            for i in range(10):
+                t_g.take_sim_step()
+                time.sleep(0.05)
+
             print("\t -Start: (%d, %d)" % (d["start"][0], d["start"][1]))
             print("\t -Goal: (%d, %d)" % (d["goal"][0], d["goal"][1]))
             print("\t -Peds")
             ped_count = 0
             for ped in d["peds"]:
                 ped_poses = []
-                for i in ped["wps"]:
+                for i in ped[2]:
                     ped_poses.append(i)
                 print("\t\t*Ped%d"%ped_count)
                 for i in ped_poses:
