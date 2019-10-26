@@ -28,7 +28,7 @@ plugins:
     origin: [0.0, 0.0, 0.0]
     range: 10
     # angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.05235987755}
-    angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.01745329251}
+    angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.06981317007}
     noise_std_dev: 0.015
     update_rate: 10
     layers: ["static"]
@@ -42,7 +42,7 @@ plugins:
     origin: [0.0, 0.0, 0.0]
     range: 10
     # angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.05235987755}
-    angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.01745329251}
+    angle: {min: -3.14159265359, max: 3.14159265359, increment: 0.06981317007}
     noise_std_dev: 0.015
     update_rate: 10
     layers: ["ped"]

@@ -7,6 +7,7 @@
     <rosparam file="$(find rl_bringup)/config/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find rl_bringup)/config/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find rl_bringup)/config/movebase_params.yaml" command="load" /> 
+    <rosparam file="$(find rl_bringup)/config/dwa_params.yaml" command="load" /> 
     <remap from="/tf" to="/$(arg ns)/tf"/>
     <remap from="/clock" to="/$(arg ns)/clock"/>
  </node>
