@@ -1,11 +1,19 @@
 rl_agent:
-  train_mode: 1 # 0: Execution in Simulation, 1: Training, 2: Execution in Real World
   f_scan_topic: f_scan
   b_scan_topic: b_scan
   robot_frame: base_footprint
+  
+  train_mode: 1 # 0: Execution in Simulation, 1: Training, 2: Execution in Real World
+
   update_frequency: 10
   goal_theshold: 0.6
-
   num_of_wps: 8
   look_ahead_distance: 1.5
   wp_reached_dist: 0.2
+
+
+  ped_type: 11              # 0: Pedestrians don't avoid robot
+                            # 10: Pedestrians always avoid robot
+                            # 11: Pedestrians avoid robot if it stands still and after reaction t
+
+  

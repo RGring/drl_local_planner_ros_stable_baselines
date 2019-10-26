@@ -20,12 +20,14 @@ import rospy
 import rospkg
 
 from nav_msgs.msg import OccupancyGrid, Path
-from flatland_msgs.srv import MoveModel, DeleteModel, SpawnModel, Step
+from flatland_msgs.srv import MoveModel, DeleteModel, SpawnModel, Step, RespawnModels
+from flatland_msgs.msg import Model
 from actionlib_msgs.msg import GoalStatusArray
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Pose2D
 from std_msgs.msg import Float64, Bool
 from geometry_msgs.msg import Twist, Point
-from pedsim_srvs.srv import SpawnPed
+from pedsim_srvs.srv import SpawnPeds
+from pedsim_msgs.msg import Ped
 from std_srvs.srv import SetBool, Empty
 
 class TaskGenerator():
@@ -38,6 +40,7 @@ class TaskGenerator():
     """
     def __init__(self, ns, state_collector, robot_radius):
 
+
         # Class variables
         self.NS = ns                                    # namespace
         self.ROBOT_RADIUS = robot_radius                # radius of the robot
@@ -47,13 +50,10 @@ class TaskGenerator():
         self.__move_base_status_id = ""                 # recent id of move_base status
         self.__map = OccupancyGrid()                    # global map
         self.__path = Path()                            # global plan
-        self.__static_objects = {"name": [],
-                                 "model_name": [],
-                                 "x": [],
-                                 "y": [],
-                                 "theta": []}           # static objects that has been spawned
+        self.__static_objects = []                      # static objects that has been spawned in the most recent task
 
-        self.__ped_type = 11                            # 0: Pedestrians don't avoid robot
+        self.__ped_type = rospy.get_param("%s/rl_agent/ped_type"%ns)
+                                                        # 0: Pedestrians don't avoid robot
                                                         # 10: Pedestrians always avoid robot
                                                         # 11: Pedestrians avoid robot if it stands still and after reaction time.
 
@@ -62,9 +62,13 @@ class TaskGenerator():
         self.__old_path_stamp = 0.0                     # timestamp of last global plan
         self.init = True
         self.__flatland_path = rospkg.RosPack().get_path('flatland_setup')
-        self.__static_object_types = ["cylinder.model.yaml",  # different object types
+        self.__static_object_types = {"name": ["cylinder.model.yaml",  # different object types
                         "palett.model.yaml",
-                        "wagon.model.yaml"]
+                        "wagon.model.yaml"], "index": [0, 0, 0]}
+
+
+        self.__ped_file = "person_two_legged.model.yaml"
+        # self.__ped_file = "person_single_circle.model.yaml"
 
         # Services
         self.__sim_step = rospy.ServiceProxy('%s/step' % self.NS, Step)
@@ -73,7 +77,9 @@ class TaskGenerator():
         self.__move_robot_to = rospy.ServiceProxy('%s/move_model' % self.NS, MoveModel)
         self.__delete_model = rospy.ServiceProxy('%s/delete_model' % self.NS, DeleteModel)
         self.__spawn_model = rospy.ServiceProxy('%s/spawn_model' % self.NS, SpawnModel)
-        self.__spawn_ped_srv = rospy.ServiceProxy('%s/pedsim_simulator/spawn_ped' % self.NS, SpawnPed)
+        self.__respawn_models = rospy.ServiceProxy('%s/respawn_models' % self.NS, RespawnModels)
+        self.__spawn_ped_srv = rospy.ServiceProxy('%s/pedsim_simulator/spawn_ped' % self.NS, SpawnPeds)
+        self.__respawn_peds_srv = rospy.ServiceProxy('%s/pedsim_simulator/respawn_peds' % self.NS, SpawnPeds)
         self.__remove_all_peds_srv = rospy.ServiceProxy('%s/pedsim_simulator/remove_all_peds' % self.NS, SetBool)
 
         # Subscriber
@@ -81,6 +87,7 @@ class TaskGenerator():
                                                   self.__goal_status_callback, queue_size=1)
         self.__map_sub = rospy.Subscriber("%s/map" % self.NS, OccupancyGrid, self.__map_callback)
         self.__path_sub = rospy.Subscriber("%s/move_base/NavfnROS/plan" % self.NS, Path, self.__path_callback)
+        # self.__path_sub = rospy.Subscriber("%s/move_base/GlobalPlanner/plan" % self.NS, Path, self.__path_callback)
 
         # Publisher
         self.__initialpose_pub = rospy.Publisher('%s/initialpose' % self.NS, PoseWithCovarianceStamped, queue_size=1)
@@ -89,6 +96,11 @@ class TaskGenerator():
         self.__done_pub = rospy.Publisher('%s/rl_agent/done' % self.NS, Bool, queue_size=1)
         self.__new_task_pub = rospy.Publisher('%s/rl_agent/new_task_started' % self.NS, Bool, queue_size=1)
         self.__resume = rospy.ServiceProxy('%s/resume' % (self.NS), Empty)
+
+        #Clear world
+        self.__init_object_remove()
+
+        self.__time_to_set_ped_task = 0.0
 
 
     def set_task(self, task):
@@ -124,10 +136,7 @@ class TaskGenerator():
                 self.spawn_object(task["static_objects"]["model_name"][i], i, task["static_objects"]["x"][i], task["static_objects"]["y"][i], task["static_objects"]["theta"][i])
 
         if 'peds' in task.keys():
-            id = 1
-            for ped in task["peds"]:
-                self.__spawn_ped(ped["start_pos"], ped["wps"], id)
-                id +=1
+            self.__respawn_peds(task["peds"])
         self.__spread_new_task()
         return True
 
@@ -149,6 +158,7 @@ class TaskGenerator():
         Generating a random path with static obstacles on it.
         :return d task information containing start, goal, path and static objects
         """
+        # start = time.time()
         self.__spread_done()
         d = {}
         # Setting path
@@ -157,13 +167,12 @@ class TaskGenerator():
         d["goal"] = self.__publish_random_goal_()
 
         # Spawning new obstacles
-        self.remove_all_static_objects()
-        self.__remove_all_peds()
         if self.__is_new_path_available(d["goal"], d["start"]):
             self.__spawn_random_static_objects()
         d["static_objects"] = self.__static_objects
         d["path"] = self.__path
         self.__spread_new_task()
+        # print("Task generation took %f secs."%(time.time() - start))
         return d
 
     def set_random_ped_task(self):
@@ -171,20 +180,95 @@ class TaskGenerator():
         Generating a random path with pedestrians on it.
         :return d task information containing start, goal, path and pedestrians
         """
+        begin = time.time()
         self.__spread_done()
         d = {}
         self.__stop_robot()
         d["start"] = self.__set_random_robot_pos()
         d["goal"] = self.__publish_random_goal_()
-        self.__remove_all_peds()
-        self.remove_all_static_objects()
-        if self.__is_new_path_available(d["goal"], d["start"]):
-            self.__spawn_random_peds_on_path()
+
+        # if not self.__is_new_path_available(d["goal"], d["start"]):
+        #     d["goal"] = self.__publish_random_goal_()
+        #
+        while not self.__is_new_path_available(d["goal"], d["start"]):
+            self.__spread_done()
+            time.sleep(0.1)
+            self.__spread_done()
+            time.sleep(0.1)
+
+            self.__stop_robot()
+            d = {}
+            d["start"] = self.__set_random_robot_pos()
+
+            # Finding valid position on map in small radius
+            valid = False
+            count = 0
+            while not valid:
+                x = d["start"][0] + random.uniform(3, math.floor(count / 10) + 5) * random.choice([-1, 1])
+                y = d["start"][1] + random.uniform(3, math.floor(count / 10) + 5) * random.choice([-1, 1])
+                valid = self.__is_pos_valid(x, y, self.__map)
+                count += 1
+            self.__publish_goal(x, y, 0)
+            d["goal"] = [x, y, 0]
+
+
+        self.__spawn_random_peds_on_path()
+
+        d["peds"] = self.__peds
+        d["path"] = self.__path
+        self.__spread_new_task()
+        self.__time_to_set_ped_task += time.time()-begin
+        # if(self.__time_to_set_ped_task%50 < 0.5):
+        #     print("Time spend on setting random path in %s: %f"%(self.NS, self.__time_to_set_ped_task))
+        return d
+
+    def set_random_short_ped_task(self):
+        """
+         Generating a random short path (> 3m and < 5m) with pedestrians on it.
+         We expect to increase the probability of a robot meeting a pedestrian.
+         :return d task information containing start, goal, path and pedestrians
+        """
+        self.__spread_done()
+        self.__stop_robot()
+        d = {}
+        d["start"] = self.__set_random_robot_pos()
+
+        #Finding valid position on map in small radius
+        valid = False
+        count = 0
+        while not valid:
+            x = d["start"][0] + random.uniform(3, math.floor(count/10) + 5)*random.choice([-1, 1])
+            y = d["start"][1] + random.uniform(3, math.floor(count/10) + 5)*random.choice([-1, 1])
+            valid = self.__is_pos_valid(x, y, self.__map)
+            count+=1
+        self.__publish_goal(x, y, 0)
+        d["goal"] = [x, y, 0]
+
+        while not self.__is_new_path_available(d["goal"], d["start"]):
+            self.__spread_done()
+            self.__stop_robot()
+            d = {}
+            d["start"] = self.__set_random_robot_pos()
+
+            # Finding valid position on map in small radius
+            valid = False
+            count = 0
+            while not valid:
+                x = d["start"][0] + random.uniform(3, math.floor(count / 10) + 5) * random.choice([-1, 1])
+                y = d["start"][1] + random.uniform(3, math.floor(count / 10) + 5) * random.choice([-1, 1])
+                valid = self.__is_pos_valid(x, y, self.__map)
+                count += 1
+            self.__publish_goal(x, y, 0)
+            d["goal"] = [x, y, 0]
+
+
+
+        self.__spawn_random_peds_on_path()
+
         d["peds"] = self.__peds
         d["path"] = self.__path
         self.__spread_new_task()
         return d
-
 
     def set_random_static_ped_task(self):
         """
@@ -199,13 +283,9 @@ class TaskGenerator():
         d["goal"] = self.__publish_random_goal_()
 
         # Spawning new obstacles
-        self.__remove_all_peds()
-        self.remove_all_static_objects()
-        while not self.__is_new_path_available(d["goal"], d["start"]):
-            d["goal"] = self.__publish_random_goal_()
-
-        self.__spawn_random_static_objects()
-        self.__spawn_random_peds_on_path()
+        if self.__is_new_path_available(d["goal"], d["start"]):
+            self.__spawn_random_static_objects()
+            self.__spawn_random_peds_on_path()
         d["peds"] = self.__peds
         d["path"] = self.__path
         d["static_objects"] = self.__static_objects
@@ -252,7 +332,6 @@ class TaskGenerator():
         self.__move_robot_to('robot_1', pose)
         self.take_sim_step()
         self.__pub_initial_position(x, y, theta)
-        self.take_sim_step()
 
     def __wait_for_laser(self):
         """
@@ -267,7 +346,7 @@ class TaskGenerator():
             rospy.logdebug("Waiting for laser scan to get available.")
             if(time.time() - begin > 1):
                 self.take_sim_step()
-            time.sleep(0.01)
+            time.sleep(0.00001)
             scan = self.__state_collector.get_static_scan()
         return scan.ranges
 
@@ -356,7 +435,11 @@ class TaskGenerator():
                 index = j * map.info.width + i
                 if index >= len(map.data):
                     return False
-                val = map.data[index]
+                try:
+                    val = map.data[index]
+                except IndexError:
+                    print("IndexError: index: %d, map_length: %d"%(index, len(map.data)))
+                    return False
                 if val != 0:
                     return False
         return True
@@ -385,17 +468,62 @@ class TaskGenerator():
         """
         Spawns a random number of static objects randomly on the path.
         """
-        max_num_obstacles = int(len(self.__path.poses) / 170)
+        max_num_obstacles = int(len(self.__path.poses) / 150)
+        self.__static_object_types["index"] = [0, 0, 0]
+        models = []
+
         if max_num_obstacles == 0:
             num_static_obstacles = 0
         else:
             num_static_obstacles = random.randint(1, max_num_obstacles)
         for i in range(num_static_obstacles):
-            model_name = random.choice(self.__static_object_types)
+            model_type = random.randint(0, len(self.__static_object_types["name"])-1)
+            model_name = self.__static_object_types["name"][model_type]
             [x, y] = self.__generate_rand_pos_on_path(self.__path.poses, 100, 1.0)
             theta = random.uniform(-math.pi, math.pi)
-            self.spawn_object(model_name, i, x, y, theta)
+            model = Model()
+            model.yaml_path = "%s/objects/%s" % (self.__flatland_path, model_name)
+            model.name = "%s_%d"%(model_name.split('.')[0], self.__static_object_types["index"][model_type])
+            model.ns = "stat_obj_%d" % i
+            model.pose = Pose2D()
+            model.pose.x = x
+            model.pose.y = y
+            model.pose.theta = theta
+            models.append(model)
+            self.__static_object_types["index"][model_type] +=1
+            # self.spawn_object(model_name, i, x, y, theta)
+        self.respawn_static_objects(models)
         return
+
+    def respawn_static_objects(self, models):
+        """
+        Respawning a new scene of static objects. Objects from previous tasks are reused
+        and simply removed to the appropriate object position.
+        More efficient, because several models are spawned with one service call.
+        :param  models list of models
+        """
+        old_model_names = []
+        for old_model in self.__static_objects:
+            old_model_names.append(old_model.name)
+        rospy.wait_for_service('%s/respawn_models' % self.NS)
+        try:
+            self.__respawn_models.call(old_model_names, models)
+        except (TypeError):
+            print('Spawn object: TypeError.')
+            return
+        except (rospy.ServiceException):
+            print('Spawn object: rospy.ServiceException. Closing serivce')
+            try:
+                self.__spawn_model.close()
+            except AttributeError:
+                print('Spawn object close(): AttributeError.')
+                return
+            return
+        except AttributeError:
+            print('Spawn object: AttributeError.')
+            return
+        self.__static_objects = models
+
 
     def spawn_object(self, model_name, index, x, y, theta):
         """
@@ -416,7 +544,7 @@ class TaskGenerator():
         srv.pose = temp
         rospy.wait_for_service('%s/spawn_model' % self.NS)
         try:
-            self.__spawn_model(srv.yaml_path, srv.name, srv.ns, srv.pose)
+            self.__spawn_model.call(srv.yaml_path, srv.name, srv.ns, srv.pose)
         except (TypeError):
             print('Spawn object: TypeError.')
             return
@@ -432,34 +560,53 @@ class TaskGenerator():
             print('Spawn object: AttributeError.')
             return
 
-        self.__static_objects["name"].append(srv.name)
-        self.__static_objects["model_name"].append(model_name)
-        self.__static_objects["x"].append(x)
-        self.__static_objects["y"].append(y)
-        self.__static_objects["theta"].append(theta)
-
+        stat_obj = Model()
+        stat_obj.yaml_path = srv.yaml_path
+        stat_obj.name = srv.name
+        stat_obj.ns = srv.ns
+        stat_obj.pose = srv.pose
+        self.__static_objects.append(stat_obj)
         return
+
 
     def remove_all_static_objects(self):
         """
          Removes all static objects, that has been spawned so far
          """
-        for i in self.__static_objects["name"]:
+        for i in self.__static_objects:
             srv = DeleteModel()
-            srv.name = i
+            srv.name = i.name
             rospy.wait_for_service('%s/delete_model' % self.NS)
-            ret = self.__delete_model(srv.name)
+            ret = self.__delete_model.call(srv.name)
 
+        self.__static_objects = []
+
+    def __init_object_remove(self):
+        """
+            Removes all objects that might be left overs from previous training sessions.
+            Is supposed to be called in the constructor.
+        """
         # This is necessary in case old objects are still present in flatland
-        if self.__static_objects["name"] == []:
-            for i in range(10):
-                srv = DeleteModel()
-                srv.name = "stat_obj_%d"%(i)
-                rospy.wait_for_service('%s/delete_model' % self.NS)
-                ret = self.__delete_model(srv.name)
-                if not ret.success:
-                    break;
-        self.__static_objects = {"name": [], "model_name": [], "x": [], "y": [], "theta": []}
+        if len(self.__static_objects) == 0:
+            for type in self.__static_object_types["name"]:
+                for i in range(5):
+                    srv = DeleteModel()
+                    srv.name = "%s_%d"%(type.split('.')[0], i)
+                    rospy.wait_for_service('%s/delete_model' % self.NS)
+                    ret = self.__delete_model.call(srv.name)
+                    if not ret.success:
+                        break
+        ret.success = True
+        person_num = 1
+        while ret.success:
+            srv = DeleteModel()
+            srv.name = "person_%d" % (person_num)
+            rospy.wait_for_service('%s/delete_model' % self.NS)
+            ret = self.__delete_model.call(srv.name)
+            person_num += 1
+        self.__remove_all_peds()
+        self.__static_objects = []
+
 
     def __remove_all_peds(self):
         """
@@ -468,7 +615,7 @@ class TaskGenerator():
         srv = SetBool()
         srv.data = True
         rospy.wait_for_service('%s/pedsim_simulator/remove_all_peds' % self.NS)
-        self.__remove_all_peds_srv(srv.data)
+        self.__remove_all_peds_srv.call(srv.data)
         self.__peds = []
         return
 
@@ -477,6 +624,7 @@ class TaskGenerator():
         Spawning n random pedestrians in the whole world.
         :param n number of pedestrians that will be spawned.
         """
+        ped_array = []
         for i in range(1, n):
             waypoints = np.array([], dtype=np.int64).reshape(0, 3)
             [x, y, theta] = self.__get_random_pos_on_map(self.__map)
@@ -488,32 +636,38 @@ class TaskGenerator():
                         [x2, y2, theta2] = self.__get_random_pos_on_map(self.__map)
                         dist = self.__mean_sqare_dist_((waypoints[-1,0] - x2), (waypoints[-1,1] - y2))
                     waypoints = np.vstack([waypoints, [x2, y2, 0.3]])
-            self.__spawn_ped([x, y, 0.0], waypoints, i)
+            ped_array.append(i, [x, y, 0.0], waypoints)
+            self.__respawn_peds(ped_array)
 
     def __spawn_random_peds_on_path(self):
         """
         Spawns a random number of pedestrians randomly near the path.
         Pedestrians either cross the path, walk along the path or stand around.
         """
-        max_num_peds = int(len(self.__path.poses)/150)
+
+        if(len(self.__path.poses) == 0):
+            return
+        max_num_peds = max(1, int(len(self.__path.poses)/300))
 
         if(max_num_peds == 0):
             num_peds = 0
         else:
             num_peds = random.randint(1,max_num_peds)
         id = 1
+        ped_array = []
         # Pedestrians along the path
         for i in range(math.ceil(num_peds*0.8)):
-            self.__spawn_random_ped_along_path(id)
+            ped_array.append(self.__get_random_ped_along_path(id))
             id += 1
 
         # Pedestrians crossing path
-        for i in range(math.ceil(num_peds/2)):
-            self.__spawn_random_crossing_ped(id)
+        for i in range(math.ceil(num_peds)):
+            ped_array.append(self.__get_random_crossing_ped(id))
             id += 1
-        return
+        self.__respawn_peds(ped_array)
+        return ped_array
 
-    def __spawn_random_ped_along_path(self, id):
+    def __get_random_ped_along_path(self, id):
         """
          Spawning a pedestrian walking along the path. The pedestrian's waypoints are generated randomply
          """
@@ -521,35 +675,48 @@ class TaskGenerator():
         start_pos.append(0.0)
 
         waypoints = np.array([], dtype=np.int64).reshape(0, 3)
-        if random.uniform(0.0, 1.0) < 0.85:
-            waypoints = np.vstack([waypoints, [start_pos[0], start_pos[1], 0.3]])
+        # if random.uniform(0.0, 1.0) < 0.85:
+        waypoints = np.vstack([waypoints, [start_pos[0], start_pos[1], 0.3]])
 
         wp = self.__generate_rand_pos_on_path(self.__path.poses, 100, 2)
         dist = self.__mean_sqare_dist_((wp[0] - start_pos[0]), (wp[1] - start_pos[1]))
         count = 0
 
         #Trying to find a waypoint with a minimum distance of 5.
-        while (dist < 5 and count < 10):
+        count_thresh = 50
+        dist_thresh = 5
+        while (dist < dist_thresh and count < count_thresh):
             wp = self.__generate_rand_pos_on_path(self.__path.poses, 100, 2)
             dist = self.__mean_sqare_dist_((wp[0] - start_pos[0]), (wp[1] - start_pos[1]))
             count += 1
 
-        if (count < 10):
+        if (count < count_thresh):
             # Found waypoint with a minimum distance of 5m
             wp.append(0.3)
             waypoints = np.vstack([waypoints, wp])
         else:
             # Didn't find waypoint with a minimum distance of 5m --> pedestrian will stand around.
             waypoints = np.vstack([waypoints, [start_pos[0], start_pos[1], 0.3]])
-        self.__spawn_ped(start_pos, waypoints, id)
+        return [id, start_pos, waypoints]
+        # self.__spawn_ped(start_pos, waypoints, id)
 
-    def __spawn_random_crossing_ped(self, id):
+    def __get_random_crossing_ped(self, id):
         """
          Spawning a pedestrian crossing the path. The pedestrian's waypoints are generated randomply
          """
-        pos_index = random.randint(0, len(self.__path.poses) - 2)
-        path_pose = self.__path.poses[pos_index]
-        path_pose_temp = self.__path.poses[pos_index + 1]
+        try:
+            pos_index = random.randint(0, len(self.__path.poses) - 2)
+        except ValueError:
+            print("Path length < 2. No crossing pedestrians are spawned.")
+            return []
+
+        try:
+            path_pose = self.__path.poses[pos_index]
+            path_pose_temp = self.__path.poses[pos_index + 1]
+        except IndexError:
+            print("IndexError from retrieving path pose.")
+            return []
+
         angle = math.atan2((path_pose_temp.pose.position.y - path_pose.pose.position.y),
                            (path_pose_temp.pose.position.x - path_pose.pose.position.x)) + math.pi / 2
 
@@ -562,49 +729,58 @@ class TaskGenerator():
 
         wp2 = self.__generate_rand_pos_near_pos(path_pose, 4, angle)
         dist = self.__mean_sqare_dist_((wp2[0] - wp1[0]), (wp2[1] - wp1[1]))
-        count = 0
-        #Trying to find a waypoint with a minimum distance of 5.
-        while (dist < 5 and count < 10):
-            wp2 = self.__generate_rand_pos_near_pos(path_pose, 4, angle)
-            dist = self.__mean_sqare_dist_((wp2[0] - wp1[0]), (wp2[1] - wp1[1]))
-            count += 1
 
-        if (count < 10):
-            # Found waypoint with a minimum distance of 5m
-            wp2.append(0.3)
-            waypoints = np.vstack([waypoints, wp2])
+        #Trying to find a waypoint with a minimum distance of 5.
+        count = 0
+        count_thresh = 50
+        dist_thresh = 10
+        # while (dist < dist_thresh and count < count_thresh):
+        wp2 = self.__generate_rand_pos_near_pos(path_pose, 7, angle)
+        dist = self.__mean_sqare_dist_((wp2[0] - wp1[0]), (wp2[1] - wp1[1]))
+        count += 1
+
+        # if (count < count_thresh):
+        # Found waypoint with a minimum distance of 5m
+        wp2.append(0.3)
+        waypoints = np.vstack([waypoints, wp2])
 
         rand = random.uniform(0.0, 1.0)
         start_pos = [wp1[0] + rand * (wp2[0] - wp1[0]), wp1[1] + rand * (wp2[1] - wp1[1]), 0.0]
-        self.__spawn_ped(start_pos, waypoints, id)
+        return [id, start_pos, waypoints]
+        # self.__spawn_ped(start_pos, waypoints, id)
 
-    def __spawn_ped(self, start_pos, wps, id):
+    def __respawn_peds(self, peds):
         """
         Spawning one pedestrian in the simulation.
         :param  start_pos start position of the pedestrian.
         :param  wps waypoints the pedestrian is supposed to walk to.
         :param  id id of the pedestrian.
         """
-        srv = SpawnPed()
-        srv.id = id
-        temp = Point()
-        temp.x = start_pos[0]
-        temp.y = start_pos[1]
-        temp.z = start_pos[2]
-        srv.pos = temp
-        srv.type = self.__ped_type
-        srv.number_of_peds = 1
-        srv.waypoints = []
-        for pos in wps:
-            p = Point()
-            p.x = pos[0]
-            p.y = pos[1]
-            p.z = pos[2]
-            srv.waypoints.append(p)
+        srv = SpawnPeds()
+        srv.peds = []
+        for ped in peds:
+            msg = Ped()
+            msg.id = ped[0]
+            msg.pos = Point()
+            msg.pos.x = ped[1][0]
+            msg.pos.y = ped[1][1]
+            msg.pos.z = ped[1][2]
+            msg.type = self.__ped_type
+            msg.number_of_peds = 1
+            msg.yaml_file = self.__ped_file
+            msg.waypoints = []
+            for pos in ped[2]:
+                p = Point()
+                p.x = pos[0]
+                p.y = pos[1]
+                p.z = pos[2]
+                msg.waypoints.append(p)
+            srv.peds.append(msg)
 
-        rospy.wait_for_service('%s/pedsim_simulator/spawn_ped' % self.NS)
+        rospy.wait_for_service('%s/pedsim_simulator/respawn_peds' % self.NS)
         try:
-            self.__spawn_ped_srv(srv.id, srv.pos, srv.type, srv.number_of_peds, srv.waypoints)
+            # self.__spawn_ped_srv.call(srv.peds)
+            self.__respawn_peds_srv.call(srv.peds)
         except rospy.ServiceException:
             print('Spawn object: rospy.ServiceException. Closing serivce')
             try:
@@ -612,8 +788,7 @@ class TaskGenerator():
             except AttributeError:
                 print('Spawn object close(): AttributeError.')
                 return
-
-        self.__peds.append({"start_pos": start_pos, "wps": wps})
+        self.__peds = peds
         return
 
     def __generate_rand_pos_on_path(self, path, range, max_r):
@@ -638,6 +813,7 @@ class TaskGenerator():
             x = r * math.cos(alpha) + path_pose.pose.position.x
             y = r * math.sin(alpha) + path_pose.pose.position.y
             pos_on_map = self.__is_pos_valid(x, y, self.__map)
+            pos_on_map = True
         return [x,y]
 
     def __is_new_path_available(self, goal, start):
@@ -648,13 +824,13 @@ class TaskGenerator():
         """
         is_available = False
         begin = time.time()
-        #while (time.time() - begin) < 1.0:
-        if self.__path.header.stamp <= self.__old_path_stamp or len(self.__path.poses) == 0:
-            time.sleep(0.01)
-        else:
-            is_available = True
-            #break
-            self.__old_path_stamp = self.__path.header.stamp
+        while (time.time() - begin) < 0.1:
+            if self.__path.header.stamp <= self.__old_path_stamp or len(self.__path.poses) == 0:
+                time.sleep(0.0001)
+            else:
+                is_available = True
+                self.__old_path_stamp = self.__path.header.stamp
+                break
         dist_goal = 10
         dist_start = 10
 
@@ -666,7 +842,7 @@ class TaskGenerator():
                                                 (start[1] - self.__path.poses[0].pose.position.y))
         if not is_available or dist_goal > 0.5 or dist_start > 0.5:
             is_available = False
-            #print("path not valid!")
+            print("path not valid!")
         return is_available
 
     def __generate_rand_pos_near_pos(self, path_pose, max_r, alpha):
