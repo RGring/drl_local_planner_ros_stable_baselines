@@ -48,7 +48,8 @@ namespace rl_image_generator {
       int img_width_neg_;           //number of height cells in negative direction
       int img_height_;              //number of height cells in negative direction
       float resolution_;            //resolution in m/cell
-      tf::TransformListener tf_;    
+      tf::TransformListener tf_;   
+      std::string robot_frame_; 
 
       /**
        * set_path_service + path_callback_
@@ -106,7 +107,11 @@ namespace rl_image_generator {
        */
       double metric_dist(double x, double y);
 
-      std::string robot_frame_ = "base_footprint";
+      float get_res();
+      int get_img_height();
+      int get_img_pos_width();
+      int get_img_neg_width();
+
 
   };
 };

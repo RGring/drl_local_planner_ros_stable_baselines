@@ -97,27 +97,43 @@ namespace rl_image_generator {
 
         double max_dist = sqrt(pow(((img_width_pos_ + img_width_neg_)*resolution_),2) + pow((img_height_*resolution_/2.0),2));
         for (int i=0; i < scan.ranges.size(); i+=1){
-            double angle = scan.angle_min + i * scan.angle_increment;
-            double length;
-            double length2;
-            if (isnan(scan.ranges[i]) || scan.ranges[i] == 0.0){
-                continue;
-            }else{
-                length = scan.ranges[i];
-                length2 = max_dist;
+            // std::vector<double> angles = {scan.angle_min + i * scan.angle_increment - 0.333*scan.angle_increment,
+            //                             scan.angle_min + i * scan.angle_increment - 0.0*scan.angle_increment,
+            //                             scan.angle_min + i * scan.angle_increment - 0.333*scan.angle_increment
+            // };
+            std::vector<double> angles;
+            angles.push_back(scan.angle_min + i * scan.angle_increment - 0.4444*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment - 0.3333*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment - 0.2222*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment - 0.1111*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment - 0.0*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment + 0.1111*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment + 0.2222*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment + 0.3333*scan.angle_increment);
+            angles.push_back(scan.angle_min + i * scan.angle_increment + 0.4444*scan.angle_increment);
+            for (int k=0; k < angles.size(); k++){
+                double angle = angles[k]; //scan.angle_min + i * scan.angle_increment;
+                double length;
+                double length2;
+                if (isnan(scan.ranges[i]) || scan.ranges[i] == 0.0){
+                    continue;
+                }else{
+                    length = scan.ranges[i];
+                    length2 = max_dist;
+                }
+
+                // Transform laserpoint to robot frame
+                tf::Vector3 laser_point(cos(angle)*length, sin(angle)*length, 0.);
+                tf::Vector3 laser_point_transformed = scan_transform_* laser_point;
+                float x1 = laser_point_transformed.getX();
+                float y1 = laser_point_transformed.getY();
+
+                tf::Vector3 laser_point2(cos(angle)*length2, sin(angle)*length2, 0.);
+                tf::Vector3 laser_point2_transformed = scan_transform_* laser_point2;
+                float x2 = laser_point2_transformed.getX();
+                float y2 = laser_point2_transformed.getY();
+                add_line_to_img_(image, x1, y1, x2, y2, 0);
             }
-
-            // Transform laserpoint to robot frame
-            tf::Vector3 laser_point(cos(angle)*length, sin(angle)*length, 0.);
-            tf::Vector3 laser_point_transformed = scan_transform_* laser_point;
-            float x1 = laser_point_transformed.getX();
-            float y1 = laser_point_transformed.getY();
-
-            tf::Vector3 laser_point2(cos(angle)*length2, sin(angle)*length2, 0.);
-            tf::Vector3 laser_point2_transformed = scan_transform_* laser_point2;
-            float x2 = laser_point2_transformed.getX();
-            float y2 = laser_point2_transformed.getY();
-            add_line_to_img_(image, x1, y1, x2, y2, 0);
         }
         return;
     }//add_scan_to_img
@@ -184,6 +200,22 @@ namespace rl_image_generator {
 		double dist = sqrt(pow(x , 2) + pow(y , 2));
 		return dist; 
 	} //metric_dist
+
+    int ImageGenerator::get_img_neg_width(){
+        return img_width_neg_;
+    }
+
+    int ImageGenerator::get_img_pos_width(){
+        return img_width_pos_;
+    }
+
+    int ImageGenerator::get_img_height(){
+        return img_height_;
+    }
+
+    float ImageGenerator::get_res(){
+        return resolution_;
+    }
 
 }; // namespace rl_image_generator
 
