@@ -39,9 +39,9 @@ if __name__ == '__main__':
     complexity = "complex_map_1"                  # simple, average, complex
 
     rospack = rospkg.RosPack()
-    rl_agent_path = rospack.get_path('rl_agent')
+    rl_bringup_path = rospack.get_path('rl_bringup')
     config = configparser.ConfigParser()
-    config.read('%s/config/path_config.ini' % rl_agent_path)
+    config.read('%s/config/path_config.ini' % rl_bringup_path)
     path_to_eval_sets = config['PATHES']['path_to_eval_sets']
     save_path = "%s/%s_eval_set_%s"%(path_to_eval_sets, task_type, complexity)
     state_collector = StateCollector(ns, "train")

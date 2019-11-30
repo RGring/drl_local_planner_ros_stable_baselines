@@ -1,4 +1,0 @@
-<launch>
-  <arg name="mode" />
-  <node pkg="rl_agent" type="run_ppo.py" name="run_ppo.py" output="screen" args="ppo_195_10008246 CnnPolicy $(arg mode) 1 0 1 PPO1 static" />
-</launch>

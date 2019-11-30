@@ -252,7 +252,7 @@ class RosEnvAbs(gym.Env):
                                                    self.__transformed_goal)
         elif self.REWARD_FUNC == 2.2:
             reward = self.__reward_cont.rew_func_2_2(self.static_scan_, self.ped_scan_, self.wp_, self.twist_, self.__transformed_goal)
-        elif self.REWARD_FUNC == 3:
+        elif self.REWARD_FUNC == 19:
             reward = self.__reward_cont.rew_func_19(self.static_scan_, self.ped_scan_, self.wp_, self.twist_,
                                                     self.__transformed_goal)
 

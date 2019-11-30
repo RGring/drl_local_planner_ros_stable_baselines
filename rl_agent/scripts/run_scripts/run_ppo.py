@@ -72,17 +72,13 @@ def load_train_env(ns, state_collector, robot_radius, rew_fnc, num_stacks,
     return env
 
 
-def run_ppo(config, state_collector, approach = "PPO1", agent_name ="ppo_99_8507750", policy ="CnnPolicy", mode="train", task_mode="static",
+def run_ppo(config, state_collector, agent_name ="ppo_99_8507750", policy ="CnnPolicy", mode="train", task_mode="static",
              stack_offset=15, num_stacks=1, debug=True, normalize = True, disc_action_space = False, ns=""):
 
-    if approach != "PPO1" and approach != "PPO2":
-        rospy.logerr("Wrong approach: %s.\n Only two different kind of approaches are excepted: PPO1, PPO2."%approach)
-        return
-
-    path_to_models = config['PATHES']['path_to_models']
+     path_to_models = config['PATHES']['path_to_models']
 
     # Loading agent
-    model = eval(approach).load("%s/%s/%s" % (path_to_models, agent_name, agent_name))
+    model = PPO2.load("%s/%s/%s" % (path_to_models, agent_name, agent_name))
 
     print("Loaded %s" % agent_name)
     print("--------------------------------------------------")
@@ -138,9 +134,9 @@ def run_ppo(config, state_collector, approach = "PPO1", agent_name ="ppo_99_8507
 if __name__ == '__main__':
 
     rospack = rospkg.RosPack()
-    rl_agent_path = rospack.get_path('rl_agent')
+    rl_bringup_path = rospack.get_path('rl_bringup')
     config = configparser.ConfigParser()
-    config.read('%s/config/path_config.ini'%rl_agent_path)
+    config.read('%s/config/path_config.ini'%rl_bringup_path)
 
     # for running from terminal (e.g. launch-file)
     if (len(sys.argv) > 1):
@@ -154,16 +150,14 @@ if __name__ == '__main__':
                  debug=bool(int(sys.argv[4])),
                  normalize=bool(int(sys.argv[5])),
                  disc_action_space=bool(int(sys.argv[6])),
-                 approach=str(sys.argv[7]),
-                 task_mode=str(sys.argv[8]),
-                 num_stacks=int(sys.argv[9]))
+                 task_mode=str(sys.argv[7]),
+                 num_stacks=int(sys.argv[8]))
 
     # for quick testing
     else:
         mode = "train"
         ns = "sim1"
         policy = "CnnPolicy_multi_input_vel2"
-        approach = "PPO2"  # Either PPO1 or PPO2
         agent_name = "ppo2_35_8001000"
 
         sc = StateCollector(ns, mode)
@@ -178,5 +172,4 @@ if __name__ == '__main__':
                  task_mode="ped",
                  num_stacks=4,
                  stack_offset = 15,
-                 approach=approach,
                  ns=ns)

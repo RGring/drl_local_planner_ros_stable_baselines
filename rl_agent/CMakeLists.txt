@@ -71,7 +71,7 @@ project(rl_agent)
   )
 
   catkin_install_python(PROGRAMS
-    scripts/train_scripts/train_ppo1.py
+    scripts/train_scripts/train_ppo.py
     scripts/run_scripts/run_ppo.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
   

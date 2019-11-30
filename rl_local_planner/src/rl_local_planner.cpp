@@ -64,7 +64,6 @@ namespace rl_local_planner {
 			return true;
 
 		if(done_){
-			ROS_WARN("Goal reached!");
 			done_ = false;
 			return true;
 		}

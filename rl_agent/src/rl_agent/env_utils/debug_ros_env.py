@@ -29,6 +29,7 @@ class DebugRosEnv():
     def __init__(self, ns, stack_offset):
         self.__ns = ns
         self.__stack_offset = stack_offset
+        print("stack_offset: %d"%self.__stack_offset)
         self.__input_images = deque(maxlen=4 * self.__stack_offset)
 
         #Input state

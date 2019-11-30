@@ -1,4 +1,0 @@
-agent_name, total_timesteps, policy, gamma, timesteps_per_actorbatch, clip_param, entcoeff, optim_epochs, optim_stepsize, optim_batchsize, lam, adam_epsilon, schedule, robot_radius rew_fnc, num_stacks, disc_action_space, normalize, stage, pretrained_model_path, task_mode
-ppo_1,10000000,CnnPolicy,0.99,8192,0.2,0.003,4,0.001,4096,0.95,0.00005,linear,0.56,1,1,1,0,0,empty, static
-ppo_2,10000000,CNN1DPolicy,0.99,8192,0.2,0.003,4,0.001,4096,0.95,0.00005,linear,0.56,1,1,1,0,0,empty, static
-ppo_3,10000000,CNN1DPolicy_multi_input,0.99,8192,0.2,0.003,4,0.001,4096,0.95,0.00005,linear,0.56,1,1,1,0,0,empty, static

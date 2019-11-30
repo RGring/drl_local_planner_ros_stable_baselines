@@ -61,9 +61,9 @@ if __name__ == '__main__':
 
 
     rospack = rospkg.RosPack()
-    rl_agent_path = rospack.get_path('rl_agent')
+    rl_bringup_path = rospack.get_path('rl_bringup')
     config = configparser.ConfigParser()
-    config.read('%s/config/path_config.ini' % rl_agent_path)
+    config.read('%s/config/path_config.ini' % rl_bringup_path)
     path_to_eval_data_train = config['PATHES']['path_to_eval_data_train']
     path_to_eval_data_test = config['PATHES']['path_to_eval_data_test']
 
