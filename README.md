@@ -89,7 +89,7 @@
     ```
     * Open third terminal:
     ```
-    source <path_to_venv>/bin/activate 
+    source <path_to_venv>/venv_p3/bin/activate 
     roslaunch rl_agent run_ppo_agent.launch mode:="train"
     ```
     * Open fourth terminal: 

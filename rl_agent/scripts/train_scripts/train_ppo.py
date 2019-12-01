@@ -231,8 +231,8 @@ if __name__ == '__main__':
     else:
 
         num_envs = 1
-        stage = 1
-        agent_name = "ppo2_test_continue_train"
+        stage = 0
+        agent_name = "ppo2_foo"
         robot_radius = 0.5
 
         record_processes = []
@@ -262,7 +262,7 @@ if __name__ == '__main__':
                          disc_action_space=False,
                          robot_radius = robot_radius,
                          stage=stage,
-                         pretrained_model_name="ppo2_test_continue_train",
+                         pretrained_model_name="ppo2_foo",
                          task_mode="ped")
 
         for p in record_processes:

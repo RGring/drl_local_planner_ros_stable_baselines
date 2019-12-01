@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /TF1/Tree1
         - /TrackedPersons1/History as line1
-        - /global_path1
         - /static obstacles1/sta_obj_21
         - /static obstacles1/stat_obj_51
         - /static obstacles1/stat_obj_91
@@ -486,7 +485,7 @@ Visualization Manager:
           Marker Topic: /flatland_server/debug/model/person_5
           Name: person5
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
@@ -510,7 +509,7 @@ Visualization Manager:
           Marker Topic: /flatland_server/debug/model/person_6
           Name: person6
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
