@@ -111,6 +111,7 @@ docker build -t ros-drl_local_planner .
 ```
 
 1. In start_scripts/training_params/ppo2_params, define the agents training parameters.
+
     | Parameter               | Desctiption |
     |-------------------------|--------------|
     | agent_name              |  Number of timestamps the agent will be trained.             |
@@ -134,9 +135,7 @@ docker build -t ros-drl_local_planner .
     | normalize | 0, if input should not be normalized. 1, if input should be normalized. |
     | stage | stage number of your training. It is supposed to be 0, if you train for the first time. If it is > 0, it loads the agent of the "pretrained_model_path" and continues training. |
     | pretrained_model_name | If stage > 0 this agent will be loaded and training can be continued. |
-    | task_mode | - "ped" for training on pedestrians only
-    - "static" for training on static objects only
-    - "ped_static" for training on both, static |
+    | task_mode | - "ped" for training on pedestrians only; "static" for training on static objects only; "ped_static" for training on both, static |
 
 
 

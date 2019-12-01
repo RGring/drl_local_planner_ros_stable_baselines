@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS ${PACKAGE_DEPS})
 
 catkin_package(
   CATKIN_DEPENDS ${PACKAGE_DEPS}
-  INCLUDE_DIRS include
 )
 
 install(DIRECTORY config/
@@ -25,7 +24,6 @@ install(DIRECTORY config/
 ## Build ##
 ###########
 
-include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
