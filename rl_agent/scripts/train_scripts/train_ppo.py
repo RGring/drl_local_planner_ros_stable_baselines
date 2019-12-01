@@ -6,7 +6,6 @@
     @date:      2019/04/05
 '''
 import os
-home = os.path.expanduser("~")
 import sys
 import rospy
 import rospkg
@@ -45,7 +44,7 @@ def train_callback(_locals, _globals):
   """
   global n_callback, best_mean_reward, agent_name, path_to_models
   # Print stats every 1000 calls
-  if (n_callback + 1) % 1000 == 0:
+  if (n_callback + 1) % 10 == 0:
 
       # Evaluate policy performance
       x, y = ts2xy(load_results('%s/%s/'%(path_to_models, agent_name)), 'timesteps')
@@ -106,7 +105,7 @@ def train_agent_ppo2(config, agent_name, total_timesteps, policy,
                      vf_coef=0.5, max_grad_norm=0.5, lam=0.95, nminibatches=4, noptepochs=4,
                      cliprange=0.2, num_envs=1, robot_radius = 0.46, rew_fnc=3, num_stacks=1, stack_offset=15, disc_action_space = False,
                      debug=False, normalize=False,
-                     stage=0, pretrained_model_path="", task_mode="static"):
+                     stage=0, pretrained_model_name="", task_mode="static"):
 
     # Setting seed
     seed = random.randint(0,1000)
@@ -148,7 +147,7 @@ def train_agent_ppo2(config, agent_name, total_timesteps, policy,
                      tensorboard_log='%s' % (path_to_tensorboard_log))
     else:
         # Pretrained model is loaded to continue training.
-        model = PPO2.load("%s/%s" % (path_to_checkpoint, pretrained_model_path.strip()), env,
+        model = PPO2.load("%s/%s/%s.pkl" % (path_to_models, pretrained_model_name, pretrained_model_name), env,
                           tensorboard_log='%s'%(path_to_tensorboard_log))
 
     # Document agent
@@ -203,10 +202,6 @@ if __name__ == '__main__':
         agent_name = str(sys.argv[1])
         stage = int(sys.argv[20])
 
-        if stage != 0:
-            # agent_name = "%s_stage_%d" % (agent_name, stage)
-            agent_name = "%s" % (agent_name)
-
         record_processes = []
         if record_evaluation_data:
             save_path = "%s/%s_training" % (path_to_eval_data_train, str(sys.argv[1]))
@@ -226,7 +221,7 @@ if __name__ == '__main__':
                          stack_offset=int(sys.argv[17]),
                          disc_action_space=bool(int(sys.argv[18])), normalize=bool(int(sys.argv[19])),
                          stage=stage,
-                         pretrained_model_path = str(sys.argv[21]),
+                         pretrained_model_name = str(sys.argv[21]),
                          task_mode=str(sys.argv[22]), num_envs=int(sys.argv[23]))
 
         for p in record_processes:
@@ -236,12 +231,9 @@ if __name__ == '__main__':
     else:
 
         num_envs = 1
-        stage = 0
-        agent_name = "ppo2_foo"
+        stage = 1
+        agent_name = "ppo2_test_continue_train"
         robot_radius = 0.5
-
-        if stage != 0:
-            agent_name = "%s_stage_%d"%(agent_name, stage)
 
         record_processes = []
         if record_evaluation_data:
@@ -264,13 +256,13 @@ if __name__ == '__main__':
                          nminibatches=1,
                          noptepochs=1,
                          debug=True,
-                         rew_fnc = 3,
+                         rew_fnc = 19,
                          num_stacks= 3,
                          stack_offset=5,
                          disc_action_space=False,
                          robot_radius = robot_radius,
-                         stage=0,
-                         pretrained_model_path="ppo2_foo",
+                         stage=stage,
+                         pretrained_model_name="ppo2_test_continue_train",
                          task_mode="ped")
 
         for p in record_processes:

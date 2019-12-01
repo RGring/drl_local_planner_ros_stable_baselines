@@ -1,4 +1,4 @@
-agent_name, total_timesteps, policy, gamma, n_steps, ent_coef, learning_rate, vf_coef, max_grad_norm,lam,nminibatches,noptepochs,cliprange, robot_radius, rew_fnc, num_stacks, stack_offset, disc_action_space, normalize, stage, pretrained_model_path, task_mode
+agent_name, total_timesteps, policy, gamma, n_steps, ent_coef, learning_rate, vf_coef, max_grad_norm,lam,nminibatches,noptepochs,cliprange, robot_radius, rew_fnc, num_stacks, stack_offset, disc_action_space, normalize, stage, pretrained_model_name, task_mode
 ppo2_1_raw_data_disc_0,30000000,CNN1DPolicy_multi_input,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.5,19,1,15,1,0,0,empty,ped
 ppo2_3_raw_data_disc_0,30000000,CNN1DPolicy_multi_input,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.5,19,3,15,1,0,0,empty,ped
 ppo2_1_raw_data_cont_0,30000000,CNN1DPolicy_multi_input,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.5,19,1,15,0,0,0,empty,ped

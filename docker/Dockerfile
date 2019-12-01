@@ -7,13 +7,17 @@ RUN apt-get update && apt-get install -y \
   virtualenv \
   screen \
   python3-dev \
+  git \
   ros-kinetic-tf2-geometry-msgs \
   ros-kinetic-navigation \
   ros-kinetic-rviz 
 
 # Building catkin_ws
 RUN mkdir -p /usr/catkin_ws/src
-COPY ./ /usr/catkin_ws/src/
+WORKDIR /usr/catkin_ws/src
+RUN git clone https://github.com/RGring/drl_local_planner_ros_stable_baselines
+RUN cp drl_local_planner_ros_stable_baselines/.rosinstall .
+RUN rosws update
 RUN /bin/bash -c '. /opt/ros/kinetic/setup.bash; cd /usr/catkin_ws; catkin_make'
 
 #Creating virtualenv for python3
@@ -37,4 +41,4 @@ RUN mv /usr/catkin_ws/src/drl_local_planner_ros_stable_baselines/rl_bringup/conf
 
 WORKDIR /usr/catkin_ws/src/drl_local_planner_ros_stable_baselines/start_scripts/
 
-ENTRYPOINT ./entrypoint_ppo2.sh "$AGENT_NAME" 4
+ENTRYPOINT ./entrypoint_ppo2.sh "$AGENT_NAME" "$NUM_SIM_ENVS"

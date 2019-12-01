@@ -9,9 +9,7 @@
 
 
 import os
-home = os.path.expanduser("~")
 import sys
-sys.path.insert(0, "/home/ronja/venv_py3/lib/python3.5/site-packages")
 import rospy
 import rospkg
 import configparser

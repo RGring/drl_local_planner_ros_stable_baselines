@@ -1,9 +1,6 @@
 #! /bin/bash
 agent_id=$1
 num_sims=$2
-echo "$num_sims"
-echo "$agent_id"
-
 
 INPUT=./training_params/ppo2_params.csv
 OLDIFS=$IFS

@@ -2,6 +2,7 @@
 * Setup to train a local planner with reinforcement learning approaches from [stable baselines](https://github.com/hill-a/stable-baselines) integrated ROS
 * Training in a simulator fusion of [Flatland](https://github.com/avidbots/flatland) and [pedsim_ros](https://github.com/srl-freiburg/pedsim_ros)
 * local planner has been trained on static and dynamic obstacles: [video](https://www.youtube.com/watch?v=laGrLaMaeT4)
+* Link to [Master Thesis](https://tams.informatik.uni-hamburg.de/publications/2019/MSc_Ronja_Gueldenring.pdf) for more in depth information.
 
 # Installation (Else: Docker below)
 
@@ -31,10 +32,10 @@
     cd <path_to_catkin_ws>
     catkin_make -DCMAKE_BUILD_TYPE=Release
     ```
-    (please install required ros packages)
+    (please install missing packages)
 
 4. Setup virtual environment to be able to use python3 with ros
-    ```
+   ```
     virtualenv <path_to_venv>/venv_p3 --python=python3
     source <path_to_venv>/venv_p3/bin/activate
     <path_to_venv>/venv_p3/bin/pip install \
@@ -102,56 +103,74 @@
 I set up a docker image, that allows you to train a DRL-agent in parallel simulation environments. Using docker you don't need to follow the steps in the Installation section.
 
 0. Build the Docker image (This will unfortunately take about 15 minutes):
-'''
-docker build
-'''
+```
+cd drl_local_planner_ros_stable_baselines/docker
+```
+```
+docker build -t ros-drl_local_planner .
+```
 
 1. In start_scripts/training_params/ppo2_params, define the agents training parameters.
-|       | computational time[sec] | actions used |
-|-------|-------------------------|--------------|
-| mod1  |                         |              |
-| mod2  | 41.9453                 | 1777         |
-| final | 6.8229                  | 1826         |
-    * agent_name - Name of the agent
-    * total_timesteps - Number of timestamps the agent will be trained.
-    * policy - see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * gamma - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * n_steps - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * ent_coef - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * learning_rate - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * vf_coef - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * max_grad_norm - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * lam - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * nminibatches - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * noptepochs - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * cliprange - [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html)
-    * robot_radius  
-    >       The radius of the robots footprint.
-    * rew_fnc  
-    >       Number of reward function, that should be used. Can be found in rl_agent/src/rl_agent/env_utils/reward_container.py.
-    * num_stacks  
-    >       State representation includes the current observation and (num_stacks - 1) previous observation.
-    * stack_offset  
-    >       The number of timestamps between each stacked observation.
-    * disc_action_space  
-    >       0, if continuous action space. 1, if discrete action space
-    * normalize  
-    >       0, if input should not be normalized. 1, if input should be normalized.
-    * stage  
-    >       stage number of your training. It is supposed to be 0, if you train for the first time. If it is > 0, it loads the agent of the "pretrained_model_path" and continues training.
-    * pretrained_model_path  
-    >       If stage > 0 this agent will be loaded and training can be continued.
-    * task_mode 
-    >       - "ped" for training on pedestrians only  
-    >       - "static" for training on static objects only  
-    >       - "ped_static" for training on both, static objects and pedestrians.
+    | Parameter               | Desctiption |
+    |-------------------------|--------------|
+    | agent_name              |  Number of timestamps the agent will be trained.             |
+    | total_timesteps         | Number of timestamps the agent will be trained. |
+    | policy |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | gamma |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | n_steps |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | ent_coef |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | learning_rate |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | vf_coef |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | max_grad_norm |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | lam |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | nminibatches |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | noptepochs |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | cliprange |  see [PPO2 Doc](https://stable-baselines.readthedocs.io/en/master/modules/ppo2.html) |
+    | robot_radius | The radius if the robot footprint |
+    | rew_func | The reward functions that should be used. They can be found and defined in rl_agent/src/rl_agent/env_utils/reward_container.py. |
+    | num_stacks | State representation includes the current observation and (num_stacks - 1) previous observation. |
+    | stack_offset | The number of timestamps between each stacked observation. |
+    | disc_action_space | 0, if continuous action space. 1, if discrete action space. |
+    | normalize | 0, if input should not be normalized. 1, if input should be normalized. |
+    | stage | stage number of your training. It is supposed to be 0, if you train for the first time. If it is > 0, it loads the agent of the "pretrained_model_path" and continues training. |
+    | pretrained_model_name | If stage > 0 this agent will be loaded and training can be continued. |
+    | task_mode | - "ped" for training on pedestrians only
+    - "static" for training on static objects only
+    - "ped_static" for training on both, static |
 
-2. There are some predefined agents. I will start the docker with the ppo2_1_raw_data_disc_0-training-session.
-'''
-docker run -rm -it -v <folder_to_save_data>:/data \
-    -e AGENT_NAME=ppo2_1_raw_data_disc_0 \
-    ros-drl_local_planner
-'''
+
+
+2. There are some predefined agents. As example I will use the ppo2_1_raw_data_disc_0 in the training session.
+
+    ```
+    docker run --rm -d \
+        -v <folder_to_save_data>:/data \
+        -v drl_local_planner_ros_stable_baselines/start_scripts/training_params:/usr/catkin_ws/src/drl_local_planner_ros_stable_baselines/start_scripts/training_params \
+        -e AGENT_NAME=ppo2_1_raw_data_disc_0 \
+        -e NUM_SIM_ENVS=4 \
+        ros-drl_local_planner
+    ```
+
+3. If you want to display the training in Rviz, run the docker container in the hosts network.
+    ```
+    docker run --rm -d \
+        -v <folder_to_save_data>:/data \
+        -v drl_local_planner_ros_stable_baselines/start_scripts/training_params:/usr/catkin_ws/src/drl_local_planner_ros_stable_baselines/start_scripts/training_params \
+        -e AGENT_NAME=ppo2_1_raw_data_disc_0 \
+        -e NUM_SIM_ENVS=4 \
+        --net=host \
+        ros-drl_local_planner
+    ```
+    Now you can display the different simulation environments:
+    * Simulation 1:
+        ```
+        roslaunch rl_bringup rviz.launch ns:="sim1"
+        ```
+    * Simulation 2:
+        ```
+        roslaunch rl_bringup rviz.launch ns:="sim2"
+        ```
+    * etc. ...
 
 
 
