@@ -73,10 +73,10 @@ def load_train_env(ns, state_collector, robot_radius, rew_fnc, num_stacks,
 def run_ppo(config, state_collector, agent_name ="ppo_99_8507750", policy ="CnnPolicy", mode="train", task_mode="static",
              stack_offset=15, num_stacks=1, debug=True, normalize = True, disc_action_space = False, ns=""):
 
-     path_to_models = config['PATHES']['path_to_models']
+    path_to_models = config['PATHES']['path_to_models']
 
     # Loading agent
-    model = PPO2.load("%s/%s/%s" % (path_to_models, agent_name, agent_name))
+    model = PPO2.load("%s/%s/%s.pkl" % (path_to_models, agent_name, agent_name))
 
     print("Loaded %s" % agent_name)
     print("--------------------------------------------------")
@@ -90,7 +90,7 @@ def run_ppo(config, state_collector, agent_name ="ppo_99_8507750", policy ="CnnP
 
 
     #Loading environment
-    env = load_train_env(ns, state_collector, 0.46, 3, num_stacks, stack_offset, debug, task_mode, mode, policy, disc_action_space, normalize)
+    env = load_train_env(ns, state_collector, 0.46, 19, num_stacks, stack_offset, debug, task_mode, mode, policy, disc_action_space, normalize)
 
     # Resetting environment
     if mode == "train" or mode == "eval":
@@ -150,6 +150,7 @@ if __name__ == '__main__':
                  disc_action_space=bool(int(sys.argv[6])),
                  task_mode=str(sys.argv[7]),
                  num_stacks=int(sys.argv[8]))
+
 
     # for quick testing
     else:
