@@ -77,8 +77,8 @@
     roslaunch rl_bringup rviz.launch ns:="sim1"
     ```
 
-2. Execute trained ppo-agent
-    * Copy the example_agents in your "path_to_models"
+2. Execute self-trained ppo-agent
+    * Copy your trained agent in your "path_to_models"
     * Open first terminal: 
     ```
     roscore
@@ -98,8 +98,59 @@
     ```
     * Set 2D Navigation Goal in rviz
 
+# Run pretrained Agents
+### Run agent trained on raw data, discrete action space, stack size 1
+1. Copy the example_agents in your "path_to_models"
+2. Open first terminal: 
+    ```
+    roscore
+    ```
+3. Open second terminal for visualization: 
+    ```
+    roslaunch rl_bringup rviz.launch ns:="sim1"
+    ```
+4. Open third terminal: 
+    ```
+    roslaunch rl_bringup setup.launch ns:="sim1" rl_params:="rl_params_scan"
+    ```
+5. Open fourth terminal:
+    ```
+    source <path_to_venv>/venv_p3/bin/activate 
+    roslaunch rl_agent run_1_raw_disc.launch mode:="train"
+    ```
+### Run agent trained on raw data, discrete action space, stack size 3
+1. Step 1 - 4 are the same like in the first example
+2. Open fourth terminal:
+    ```
+    source <path_to_venv>/venv_p3/bin/activate 
+    roslaunch rl_agent run_3_raw_disc.launch mode:="train"
+    ```
 
-# Docker
+### Run agent trained on raw data, continuous action space, stack size 1
+1. Step 1 - 4 are the same like in the first example
+2. Open fourth terminal:
+    ```
+    source <path_to_venv>/venv_p3/bin/activate 
+    roslaunch rl_agent run_1_raw_cont.launch mode:="train"
+    ```
+
+### Run agent trained on image data, discrete action space, stack size 1
+1. Step 1 - 3 are the same like in the first example
+4. Open third terminal: 
+    ```
+    roslaunch rl_bringup setup.launch ns:="sim1" rl_params:="rl_params_img"
+    ```
+5. Open fourth terminal:
+    ```
+    source <path_to_venv>/venv_p3/bin/activate 
+    roslaunch rl_agent run_1_img_disc.launch mode:="train"
+    ```
+
+
+    
+
+
+# Training in Docker
 I set up a docker image, that allows you to train a DRL-agent in parallel simulation environments. Using docker you don't need to follow the steps in the Installation section.
 
 0. Build the Docker image (This will unfortunately take about 15 minutes):

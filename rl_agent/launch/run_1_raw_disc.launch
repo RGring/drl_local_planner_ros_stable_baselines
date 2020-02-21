@@ -1,0 +1,4 @@
+<launch>
+  <arg name="mode" />
+  <node pkg="rl_agent" type="run_ppo.py" name="run_ppo.py" output="screen" args="ppo2_1_raw_data_disc_0 CNN1DPolicy_multi_input $(arg mode) 1 0 1 ped 1" />
+</launch>
