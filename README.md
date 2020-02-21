@@ -99,6 +99,11 @@
     * Set 2D Navigation Goal in rviz
 
 # Run pretrained Agents
+Note: To be able to load the pretrained agents, you need to install numpy version 1.17.0.
+```
+<path_to_venv>/venv_p3/bin/pip install numpy==1.17
+```
+
 ### Run agent trained on raw data, discrete action space, stack size 1
 1. Copy the example_agents in your "path_to_models"
 2. Open first terminal: 
