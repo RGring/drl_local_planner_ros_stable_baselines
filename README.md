@@ -1,7 +1,7 @@
 # What is this repository for?
 * Setup to train a local planner with reinforcement learning approaches from [stable baselines](https://github.com/hill-a/stable-baselines) integrated ROS
 * Training in a simulator fusion of [Flatland](https://github.com/avidbots/flatland) and [pedsim_ros](https://github.com/srl-freiburg/pedsim_ros)
-* local planner has been trained on static and dynamic obstacles: [video](https://www.youtube.com/watch?v=laGrLaMaeT4)
+* local planner has been trained on static and dynamic obstacles: [video](https://www.youtube.com/watch?v=nHvpO0hVnAg)
 * Link to [Master Thesis](https://tams.informatik.uni-hamburg.de/publications/2019/MSc_Ronja_Gueldenring.pdf) for more in depth information.
 
 # Installation (Else: Docker below)
