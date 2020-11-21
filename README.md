@@ -157,7 +157,7 @@ Note: To be able to load the pretrained agents, you need to install numpy versio
 
 
 # Training in Docker
-I set up a docker image, that allows you to train a DRL-agent in parallel simulation environments. Using docker you don't need to follow the steps in the Installation section.
+I set up a docker image, that allows you to train a DRL-agent in parallel simulation environments. Furthermore, it simplifies the deployment on a server. Using docker you don't need to follow the steps in the Installation section.
 
 0. Build the Docker image (This will unfortunately take about 15 minutes):
 ```
@@ -166,7 +166,7 @@ cd drl_local_planner_ros_stable_baselines/docker
 ```
 docker build -t ros-drl_local_planner .
 ```
-
+## Training from scratch
 1. In start_scripts/training_params/ppo2_params, define the agents training parameters.
 
     | Parameter               | Desctiption |
@@ -207,7 +207,7 @@ docker build -t ros-drl_local_planner .
         ros-drl_local_planner
     ```
 
-3. If you want to display the training in Rviz, run the docker container in the hosts network.
+3. If you want to display the training in Rviz, run the docker container in the hosts network. In order to use rviz, the relevant packages need to be compiled on your machine.
     ```
     docker run --rm -d \
         -v <folder_to_save_data>:/data \
@@ -227,6 +227,28 @@ docker build -t ros-drl_local_planner .
         roslaunch rl_bringup rviz.launch ns:="sim2"
         ```
     * etc. ...
+
+## Train with pre-trained agents
+### Run agent trained on raw data, discrete action space, stack size 1
+    ```
+    docker run --rm -d \
+        -v drl_local_planner_ros_stable_baselines/example_agents:/data/agents \
+        -v drl_local_planner_ros_stable_baselines/start_scripts/training_params:/usr/catkin_ws/src/drl_local_planner_ros_stable_baselines/start_scripts/training_params \
+        -e AGENT_NAME=ppo2_1_raw_data_disc_0_pretrained \
+        -e NUM_SIM_ENVS=4 \
+        --net=host \
+        ros-drl_local_planner
+    ```
+### Run agent trained on image data, discrete action space, stack size 1
+    ```
+    docker run --rm -d \
+        -v drl_local_planner_ros_stable_baselines/example_agents:/data/agents \
+        -v drl_local_planner_ros_stable_baselines/start_scripts/training_params:/usr/catkin_ws/src/drl_local_planner_ros_stable_baselines/start_scripts/training_params \
+        -e AGENT_NAME=ppo2_1_img_disc_1_pretrained \
+        -e NUM_SIM_ENVS=4 \
+        --net=host \
+        ros-drl_local_planner
+    ```
 
 
 

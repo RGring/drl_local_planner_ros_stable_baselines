@@ -5,6 +5,9 @@ ppo2_1_raw_data_cont_0,30000000,CNN1DPolicy_multi_input,0.99,4800,0.005,0.0003,0
 ppo2_1_img_disc_1,30000000,CnnPolicy,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.5,19,1,15,1,0,0,empty,ped
 ppo2_3_img_disc_0,30000000,CnnPolicy,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.5,19,3,15,1,0,0,empty,ped
 ppo2_1_img_cont_0,30000000,CnnPolicy,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.5,19,1,15,0,0,0,empty,ped
+ppo2_1_raw_data_disc_0_pretrained,30000000,CNN1DPolicy_multi_input,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.46,19,1,15,1,0,1,ppo2_1_raw_data_disc_0,ped
+ppo2_1_img_disc_1_pretrained,30000000,CnnPolicy,0.99,4800,0.005,0.0003,0.2,0.5,0.95,15,3,0.2,0.46,19,1,15,1,0,1,ppo2_1_img_disc_0,ped
+ppo2_3_raw_data_disc_0_pretrained,30000000,CNN1DPolicy_multi_input,0.99,4800,0.005,0.0003,0.2,0.46,0.95,15,3,0.2,0.5,19,3,15,1,0,1,ppo2_3_raw_data_disc_0,ped
 
 
 

@@ -19,7 +19,7 @@ echo "$sim_name"
 if [ "$policy" = "CnnPolicy_multi_input_vel" ] || [ "$policy" = "CnnPolicy_multi_input_vel2" ] || [ "$policy" = "CnnPolicy" ];
 then
     echo "$policy"
-    roslaunch rl_bringup setup.launch ns:="$sim_name" rl_params:="rl_params_img_dyn" map_path:="$map_path"
+    roslaunch rl_bringup setup.launch ns:="$sim_name" rl_params:="rl_params_img" map_path:="$map_path"
 fi
 
 if [ "$policy" = "CNN1DPolicy" ] || [ "$policy" = "CNN1DPolicy_multi_input" ];
