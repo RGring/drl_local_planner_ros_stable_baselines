@@ -35,7 +35,7 @@
     ```
     (please install missing packages)
 
-4. Setup virtual environment to be able to use python3 with ros
+4. Setup virtual environment to be able to use python3 with ros (consider also requirements.txt)
    ```
     virtualenv <path_to_venv>/venv_p3 --python=python3
     source <path_to_venv>/venv_p3/bin/activate
