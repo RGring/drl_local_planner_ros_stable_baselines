@@ -125,6 +125,8 @@ class CNN1DPolicy_multi_input(common.FeedForwardPolicy):
             kwargs["laser_scan_len"] = rospy.get_param("%s/rl_agent/scan_size"%NS, 90)
         except ConnectionRefusedError:
             kwargs["laser_scan_len"] = 90
+        except AttributeError:
+            kwargs["laser_scan_len"] = 90
         super(CNN1DPolicy_multi_input, self).__init__(*args, **kwargs, cnn_extractor=laser_cnn_multi_input, feature_extraction="cnn")
 
 
