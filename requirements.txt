@@ -24,7 +24,7 @@ gym==0.12.1
 h5py==2.9.0
 idna==2.8
 imagesize==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 joblib==0.13.2
 Keras-Applications==1.0.7
 Keras-Preprocessing==1.0.9
