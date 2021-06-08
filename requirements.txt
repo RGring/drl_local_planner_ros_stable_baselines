@@ -42,7 +42,7 @@ packaging==19.0
 pandas==0.24.2
 pathtools==0.1.2
 pbr==5.1.3
-Pillow==6.0.0
+Pillow==8.2.0
 pkg-resources==0.0.0
 pluggy==0.6.0
 port-for==0.3.1
