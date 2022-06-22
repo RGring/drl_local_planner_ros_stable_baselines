@@ -36,7 +36,7 @@ matplotlib==3.0.3
 mock==2.0.0
 more-itertools==7.0.0
 mpi4py==3.0.1
-numpy==1.17.0
+numpy==1.22.0
 opencv-python==4.0.0.21
 packaging==19.0
 pandas==0.24.2
