@@ -25,7 +25,7 @@ h5py==2.9.0
 idna==2.8
 imagesize==1.1.0
 Jinja2==2.10.1
-joblib==0.13.2
+joblib==1.2.0
 Keras-Applications==1.0.7
 Keras-Preprocessing==1.0.9
 kiwisolver==1.0.1
